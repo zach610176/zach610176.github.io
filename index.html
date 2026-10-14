@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>计算机免修考试 · 刷题</title>
+<style>
+:root{
+  --bg:#f4f6f9; --card:#fff; --fg:#1f2430; --muted:#6b7280; --line:#e6e8ec;
+  --pri:#2563eb; --pri-soft:#eaf0ff; --ok:#16a34a; --ok-soft:#e9f8ee;
+  --bad:#dc2626; --bad-soft:#fdecec; --warn:#d97706; --radius:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--fg);
+  font:16px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{max-width:780px;margin:0 auto;padding:0 14px 108px}
+a{color:var(--pri)}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar .inner{max-width:780px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:9px 14px}
+.tb-back{font-size:22px;line-height:1;padding:2px 6px;border-radius:8px;color:var(--pri)}
+.tb-title{font-weight:700;font-size:16px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-meta{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.clock{font-variant-numeric:tabular-nums;font-weight:700;color:var(--warn)}
+.clock.danger{color:var(--bad)}
+
+/* ---------- generic ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(20,30,60,.04)}
+.sec-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin:18px 4px 6px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.pbar{height:7px;border-radius:99px;background:#e9edf3;overflow:hidden}
+.pbar>i{display:block;height:100%;background:linear-gradient(90deg,#3b82f6,#22c55e);border-radius:99px;transition:width .25s}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0}
+.row+.row{border-top:1px dashed var(--line)}
+.banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:10px 12px;font-size:13px;margin:12px 0}
+
+/* ---------- home ---------- */
+.hero{background:linear-gradient(135deg,#1d4ed8,#3b82f6 55%,#22c55e);color:#fff;border-radius:18px;padding:18px 16px;margin:14px 0 4px;box-shadow:0 6px 20px rgba(37,99,235,.25)}
+.hero h1{margin:0 0 4px;font-size:19px;line-height:1.35}
+.hero p{margin:0 0 12px;font-size:13px;opacity:.92}
+.hero .pbar{background:rgba(255,255,255,.28)}
+.hero .pbar>i{background:#fff}
+.hero .nums{display:flex;gap:16px;margin-top:10px;font-size:12px;opacity:.95}
+.hero .nums b{font-size:17px;display:block;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:420px){.grid{grid-template-columns:1fr}}
+.mode{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:13px;text-align:left;display:block;width:100%;box-shadow:0 1px 2px rgba(20,30,60,.04);transition:transform .08s}
+.mode:active{transform:scale(.985)}
+.mode b{display:block;font-size:15.5px;margin-bottom:3px}
+.mode span{display:block;font-size:12.5px;color:var(--muted);line-height:1.45}
+.mode .pill{display:inline-block;background:var(--pri-soft);color:var(--pri);font-size:11.5px;font-weight:700;border-radius:99px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+.mode.hl{background:linear-gradient(135deg,#eff6ff,#fff);border-color:#bfdbfe}
+
+/* ---------- quiz ---------- */
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:12px 0;box-shadow:0 1px 2px rgba(20,30,60,.04)}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;color:var(--pri);background:var(--pri-soft);border-radius:99px;padding:2px 9px;margin-bottom:9px}
+.tag.gray{color:var(--muted);background:#f1f3f7}
+.stem{font-size:17.5px;font-weight:600;line-height:1.62;margin-bottom:14px;word-break:break-word}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;background:#fbfcfe;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;line-height:1.55;transition:background .12s,border-color .12s}
+.opt:active{background:#f2f5fa}
+.opt .k{flex:0 0 24px;height:24px;border-radius:50%;background:#eef1f6;color:#475569;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.opt .t{flex:1;word-break:break-word}
+.opt.ok{background:var(--ok-soft);border-color:#86efac}
+.opt.ok .k{background:var(--ok);color:#fff}
+.opt.bad{background:var(--bad-soft);border-color:#fca5a5}
+.opt.bad .k{background:var(--bad);color:#fff}
+.opt.dim{opacity:.55}
+.opt.picked{border-color:var(--pri);background:var(--pri-soft)}
+.opt.picked .k{background:var(--pri);color:#fff}
+.ansline{margin-top:12px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ansline .good{color:var(--ok)}
+.ansline .wrong{color:var(--bad)}
+.navbtns{display:flex;gap:10px;margin:14px 0}
+.navbtns button{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;font-weight:600;box-shadow:0 1px 2px rgba(20,30,60,.04)}
+.navbtns button.primary{background:var(--pri);border-color:var(--pri);color:#fff}
+.navbtns button.fav{flex:0 0 64px}
+.navbtns button:disabled{opacity:.45}
+.navbtns button:active{transform:scale(.985)}
+
+/* ---------- exam ---------- */
+.sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:7px;margin-top:8px}
+.sheet button{border:1px solid var(--line);border-radius:9px;padding:8px 0;font-size:13px;font-weight:600;background:#fff;font-variant-numeric:tabular-nums}
+.sheet button.done{background:var(--pri-soft);border-color:#bfdbfe;color:var(--pri)}
+.sheet button.cur{background:var(--pri);border-color:var(--pri);color:#fff}
+.sheet button.ok{background:var(--ok-soft);border-color:#86efac;color:#166534}
+.sheet button.bad{background:var(--bad-soft);border-color:#fca5a5;color:#991b1b}
+
+/* ---------- stats ---------- */
+.bar{display:flex;align-items:center;gap:10px;font-size:13.5px;padding:6px 0}
+.bar .name{flex:0 0 88px;color:#334155;font-weight:600}
+.bar .track{flex:1;height:9px;border-radius:99px;background:#eef1f6;overflow:hidden}
+.bar .track>i{display:block;height:100%;border-radius:99px;background:var(--pri)}
+.bar .track>i.low{background:var(--bad)}
+.bar .track>i.mid{background:var(--warn)}
+.bar .val{flex:0 0 96px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.kpi div{background:#f8fafc;border-radius:12px;padding:9px 4px}
+.kpi b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:11.5px;color:var(--muted)}
+table.hist{width:100%;border-collapse:collapse;font-size:13.5px}
+table.hist th,table.hist td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+table.hist th:first-child,table.hist td:first-child{text-align:left;font-variant-numeric:normal}
+
+/* ---------- ops ---------- */
+.ops h3{font-size:15.5px;margin:16px 0 6px;color:#0f172a;border-left:4px solid var(--pri);padding-left:9px}
+.ops ol{margin:0;padding-left:22px}
+.ops li{margin:7px 0;line-height:1.65;font-size:14.5px}
+.kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:0 6px;font-size:12.5px;background:#f8fafc;font-family:ui-monospace,Consolas,monospace}
+
+/* ---------- bottom nav ---------- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabbar .inner{max-width:780px;margin:0 auto;display:flex}
+.tabbar button{flex:1;padding:8px 0 9px;font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar button .ic{font-size:18px;line-height:1.1}
+.tabbar button.on{color:var(--pri);font-weight:700}
+
+/* ---------- toast ---------- */
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(12px);background:rgba(17,24,39,.92);color:#fff;padding:9px 16px;border-radius:99px;font-size:13.5px;opacity:0;pointer-events:none;transition:.22s;z-index:60;max-width:80vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14.5px}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar" style="display:none"></div>
+<div class="wrap" id="app"></div>
+<nav class="tabbar"><div class="inner" id="tabs"></div></nav>
+<div id="toast"></div>
+<script>
+"use strict";
+/* ==================== 数据 ==================== */
+var QUESTIONS = [{"no":1,"lesson":"第1课","stem":"AI（人工智能）的通俗定义是","options":["能模拟人类完成特定任务的计算机程序","能产生自我意识并理解情感的机器人","所有能联网运行的软件程序的统称","人类编写的一切代码和脚本的集合"],"answer":"A"},{"no":2,"lesson":"第1课","stem":"按照讲义，当前所有AI产品都属于","options":["强AI","弱AI","通用人工智能","超人工智能"],"answer":"B"},{"no":3,"lesson":"第1课","stem":"弱AI（专用人工智能）的特点是","options":["能在多个领域之间迁移学习并自主推理","在几乎所有任务上都达到人类智能水平","只能完成特定领域任务","目前仅存在于实验室的理论设想之中"],"answer":"C"},{"no":4,"lesson":"第1课","stem":"关于强AI（通用人工智能），下列说法正确的是","options":["目前已经实现并广泛使用","存在于大多数日常产品中","Siri就属于强AI","目前尚不存在，是未来的发展方向"],"answer":"D"},{"no":5,"lesson":"第1课","stem":"AI与传统软件的核心区别是","options":["传统软件靠人写死规则，AI从数据中自己学习规律","传统软件从数据中自学，AI靠人写死规则","两者在原理与实现上完全没有区别","传统软件会自主学习，AI则不会学习"],"answer":"A"},{"no":6,"lesson":"第1课","stem":"讲义把传统软件比作“照着菜谱做菜”，那么AI更像","options":["一本记录详细步骤和配料的菜谱","看过大量菜品后自己琢磨出做菜规律","一台只能做加减乘除的普通计算器","一部预先录制好的教学视频"],"answer":"B"},{"no":7,"lesson":"第1课","stem":"Siri属于弱AI，最根本的原因是","options":["它能力全面，能应对各类复杂问题","它能跨领域学习并自主创造内容","它只能做特定任务，难以灵活应对所有问题","它属于通用人工智能而非弱AI"],"answer":"C"},{"no":8,"lesson":"第1课","stem":"AI概念诞生、图灵测试提出的时期是","options":["突破期（1997-2012）","普及期（2012-2022）","智能体时代（2024-2026）","起步期（1950s-1970s）"],"answer":"D"},{"no":9,"lesson":"第1课","stem":"1997年战胜国际象棋世界冠军的是","options":["深蓝（Deep Blue），IBM开发的国际象棋程序","ChatGPT，一款能进行多轮对话的大语言模型","AlphaGo，战胜围棋世界冠军的智能程序","Siri，苹果公司推出的智能语音助手"],"answer":"A"},{"no":10,"lesson":"第1课","stem":"深度学习在图像识别大赛取得突破、AI进入快速发展期的年份是","options":["1997年","2012年","2022年","2024年"],"answer":"B"},{"no":11,"lesson":"第1课","stem":"生成式AI爆发（2022至今）的标志性事件是","options":["深蓝战胜国际象棋冠军","图灵测试提出","ChatGPT引发大模型热潮","AI Agent全面普及"],"answer":"C"},{"no":12,"lesson":"第1课","stem":"AI从“问答工具”升级为“能自主完成复杂任务的智能助手”，对应哪个阶段","options":["人工智能整体处于起步探索的初步发展阶段","人工智能整体处于低谷回落的发展困难阶段","人工智能整体正处于技术大范围普及推广应用的阶段","人工智能进入智能体时代（2024—2026年）"],"answer":"D"},{"no":13,"lesson":"第1课","stem":"用“诺基亚语音拨号→iPhone的Siri→抖音推荐→ChatGPT→AI Agent”串联时间线，最能直观感受的是","options":["AI能力的持续跃迁","手机屏幕的不断变大","电池技术的逐步进步","网络速度的持续提升"],"answer":"A"},{"no":14,"lesson":"第1课","stem":"第一代信息获取方式（传统搜索引擎）的工作原理是","options":["自然语言提问后直接给出整合答案","关键词匹配返回链接列表，由用户自行阅读整合","给出目标后由Agent自动完成任务","通过语音输入直接给出结论"],"answer":"B"},{"no":15,"lesson":"第1课","stem":"第二代AI搜索（如秘塔搜索、Perplexity）的特点是","options":["只返回一长串网页链接的列表让用户自己筛选","给出的答案完全正确但不附带任何来源","直接给答案并附可追溯来源，节省整合时间","输出的结果完全正确且不需要人工核验"],"answer":"C"},{"no":16,"lesson":"第1课","stem":"第三代AI Agent（智能体）获取信息的特点是","options":["只能返回搜索引擎所给出的链接列表","只能针对用户提问直接给出一个单一答案","第三代获取信息的过程完全不涉及任何自动化操作处理","给出目标后自主拆解任务多步调用工具返回完整成果"],"answer":"D"},{"no":17,"lesson":"第1课","stem":"三代信息获取方式的交互方式演变顺序是","options":["关键词→自然语言→目标指令","自然语言→关键词→目标指令","目标指令→关键词→自然语言","三代一直使用关键词"],"answer":"A"},{"no":18,"lesson":"第1课","stem":"三代信息获取方式的自动化程度演变顺序是","options":["AI自主执行→人工筛选→AI整合","人工筛选→AI整合→AI自主执行","三代完全相同","三代都由人工完成"],"answer":"B"},{"no":19,"lesson":"第1课","stem":"三代信息获取方式的可信度特点，表述正确的是","options":["三代信息获取之后都不需要再进行人工的核验","三代获取到的信息都没有来源可供用户追溯查询","第一代来源明确，第二代附引用，第三代需审核","第二代获取信息时其来源最不明确、可靠性也最差"],"answer":"C"},{"no":20,"lesson":"第1课","stem":"写论文需要查找某个领域的研究现状，最合适的做法是","options":["只相信AI生成的答案，不做核验","只用传统搜索，且不做核验","随意选择一种方式，且不做核验","按场景选最优方式，并人工核验AI输出"],"answer":"D"},{"no":21,"lesson":"第1课","stem":"“刷脸支付、手机人脸解锁、门禁人脸识别”属于哪一类AI场景","options":["身份识别类","内容推荐类","图像创作类","语音交互类"],"answer":"A"},{"no":22,"lesson":"第1课","stem":"“抖音/快手/小红书的视频推荐、淘宝/京东的商品推荐”的核心是","options":["你是谁","猜你喜欢","听懂和说出","生成图片"],"answer":"B"},{"no":23,"lesson":"第1课","stem":"“外卖/打车的路径规划与ETA预测、输入法的智能联想与纠错”属于哪一类AI场景","options":["身份识别类，如人脸识别和指纹验证","图像创作类，如生成图片和海报","生活服务类，路径规划与智能联想辅助决策","学习办公类，如文档写作和翻译"],"answer":"C"},{"no":24,"lesson":"第1课","stem":"点外卖时显示“预计30分钟送达”，背后AI主要在做","options":["识别你的身份信息","生成商品展示图片","播放背景音乐","优化配送路径并预测送达时间"],"answer":"D"},{"no":25,"lesson":"第1课","stem":"第一代传统搜索引擎的典型代表工具是","options":["秘塔搜索、Perplexity","豆包智能体、扣子Coze","即梦、可灵","百度、Bing"],"answer":"D"},{"no":26,"lesson":"第2课","stem":"传统编程范式的核心是","options":["人把所有规则想清楚，计算机只是执行","机器从大量数据中自己学习规律","人只提供例子，计算机自己找规律","规则是隐性的、由机器学出来的"],"answer":"A"},{"no":27,"lesson":"第2课","stem":"机器学习范式的核心是","options":["人编写显性的规则代码交给计算机执行","人提供大量数据，计算机自己学习规律生成模型","计算机只按人写好的规则来计算执行","整个过程完全不需要任何数据来参与"],"answer":"B"},{"no":28,"lesson":"第2课","stem":"传统编程与机器学习中“规则”的区别是","options":["两者的规则都来自机器本身的学习","两者的规则都来自人工的编写","前者规则由人显性写，后者由机器隐性学","两者本质上没有任何规则存在"],"answer":"C"},{"no":29,"lesson":"第2课","stem":"下列情况更适合使用机器学习的是","options":["规则简单明确，如计算圆的面积","任何情况下都不需要机器学习","规则固定且长期不会变化","规则复杂难写或随时间变化，如用户偏好"],"answer":"D"},{"no":30,"lesson":"第2课","stem":"判断“什么样的图片是猫”这类任务更适合用","options":["机器学习，规则复杂人写不出","传统编程，更准确高效","两者都不适合，只能靠人","只能依靠人工逐个判断"],"answer":"A"},{"no":31,"lesson":"第2课","stem":"判断“邮件是否为垃圾邮件”更适合使用","options":["传统编程，垃圾邮件的规则可以完全写死","机器学习，规则复杂且会随时间变化","两者都不需要，只能靠人工逐个判断","只能依靠人工来判断处理每一封邮件"],"answer":"B"},{"no":32,"lesson":"第2课","stem":"“计算圆的面积”这类任务更适合","options":["机器学习，靠数据学规律","必须使用机器学习","传统编程，规则简单更准确高效","无法完成这类任务"],"answer":"C"},{"no":33,"lesson":"第2课","stem":"监督学习的特点是","options":["给机器的训练数据完全不带标签","机器靠试错和奖励信号来学习","机器自己发现数据中的结构和规律","给带标签数据学习输入输出映射，应用最广"],"answer":"D"},{"no":34,"lesson":"第2课","stem":"无监督学习的特点是","options":["给无标签数据，机器自己发现结构和规律","给带标签的数据做对照监督学习","通过试错和奖励来逐步获得能力","只用于下棋一类的游戏任务"],"answer":"A"},{"no":35,"lesson":"第2课","stem":"强化学习的学习方式是","options":["对照标准答案来进行监督学习","通过试错和奖励来学，做对奖励做错惩罚","把相似的数据聚成一类处理","不需要任何反馈信号即可学习"],"answer":"B"},{"no":36,"lesson":"第2课","stem":"AlphaGo（游戏AI）用到的学习方式是","options":["监督学习","无监督学习","强化学习","传统编程"],"answer":"C"},{"no":37,"lesson":"第2课","stem":"人脸识别属于哪类学习方式","options":["无监督学习，靠数据聚类来分组","强化学习，靠试错获得奖励信号","传统编程，靠人工编写固定规则","监督学习，每张训练人脸都有姓名标签"],"answer":"D"},{"no":38,"lesson":"第2课","stem":"数据集通常分为三部分，其中占比最大（约70%）的是","options":["训练集","验证集","测试集","校准集"],"answer":"A"},{"no":39,"lesson":"第2课","stem":"用来在训练过程中调整参数、防止过拟合的是","options":["训练集，用来训练模型的参数","验证集，训练中调参并防止过拟合","测试集，用来评估最终表现","以上都不需要，直接部署使用"],"answer":"B"},{"no":40,"lesson":"第2课","stem":"用来最终评估模型效果、训练时不接触的是","options":["训练集","验证集","测试集（约15%）","全部数据集"],"answer":"C"},{"no":41,"lesson":"第2课","stem":"准确率（Accuracy）指的是","options":["训练数据的数量","模型的参数规模","训练的时长","模型预测正确的比例"],"answer":"D"},{"no":42,"lesson":"第2课","stem":"“垃圾进，垃圾出”（Garbage In, Garbage Out）说明的是","options":["训练数据质量差或有偏差，模型效果就差","垃圾数据越多，模型效果反而越好","数据量大小对模型效果无关紧要","只要算法好，数据好坏无所谓"],"answer":"A"},{"no":43,"lesson":"第2课","stem":"把训练AI比作培养学生，那么“模拟考试”（用来查漏补缺）对应的是","options":["训练集","验证集","测试集","课本和练习题"],"answer":"B"},{"no":44,"lesson":"第2课","stem":"把训练AI比作培养学生，“期末考试”（用来检验真实水平）对应的是","options":["训练集","验证集","测试集","课本和练习题"],"answer":"C"},{"no":45,"lesson":"第2课","stem":"如果训练集里全是白猫的图片，测试时给一张黑猫，模型最可能的结果是","options":["完美识别出这是一只可爱的猫并给出正确结果","识别结果完全不会受到任何影响","一定能正确地把黑猫识别出来并输出结果","只学到白色等于猫而非真猫特征，出现偏差"],"answer":"D"},{"no":46,"lesson":"第2课","stem":"欠拟合（Underfitting）的表现是","options":["模型太简单，训练集和测试集准确率都低","训练集准确率很高，测试集准确率低","只在全新的数据上表现好","模型的复杂度太高"],"answer":"A"},{"no":47,"lesson":"第2课","stem":"过拟合（Overfitting）的表现是","options":["训练集和测试集准确率都低","训练集准确率很高，新数据上表现差","训练测试都很高且泛化良好","模型的复杂度太低"],"answer":"B"},{"no":48,"lesson":"第2课","stem":"防止过拟合的方法包括","options":["减少训练数据的数量规模来简化任务","让模型的复杂度变得更高、参数更多","增加数据、简化模型、数据增强、提前停止","只增加模型训练的时间长度即可"],"answer":"C"},{"no":49,"lesson":"第2课","stem":"过拟合更可能发生在","options":["训练数据很多的时候","任何情况下都不会发生","与数据量完全无关","数据少时易记住特例而非规律"],"answer":"D"},{"no":50,"lesson":"第2课","stem":"关于零代码平台的监督学习应用，下列说法正确的是","options":["只能做图像分类这一件事而已","训练好的模型无法导出使用","还可做目标检测、文本分类、语音识别等","不需要任何数据就能训练"],"answer":"C"},{"no":51,"lesson":"第3课","stem":"一张RGB彩色图片中，每个像素由几个数字表示","options":["3个","1个","2个","4个"],"answer":"A"},{"no":52,"lesson":"第3课","stem":"一张1080p图片大约有多少个像素","options":["20万","约200万","2000万","2万"],"answer":"B"},{"no":53,"lesson":"第3课","stem":"AI识别图像的底层（第一层）识别的是","options":["整体的语义含义","眼睛、耳朵等局部形状","边缘、线条、颜色块","图片中的文字"],"answer":"C"},{"no":54,"lesson":"第3课","stem":"AI识别图像的高层（最后一层）做的是","options":["识别颜色块和基础色带","识别纹理细节和图案","识别边缘和线条走向","组合局部特征判断整体是什么"],"answer":"D"},{"no":55,"lesson":"第3课","stem":"AI的“看”与人的“看”的本质区别是","options":["人基于理解语义，AI基于模式匹配与概率","两者的识别方式完全相同","AI能够真正理解猫是什么动物","人靠模式匹配和概率统计来识别"],"answer":"A"},{"no":56,"lesson":"第3课","stem":"图像分类（Image Classification）任务是","options":["找到图中物体的位置","判断整张图片类别并输出标签","做像素级边界划分","对图片进行修复增强"],"answer":"B"},{"no":57,"lesson":"第3课","stem":"目标检测（Object Detection）任务的特点是","options":["只判断整张图片属于什么类别","只找物体位置而不判断其类别","判断是什么，并用矩形框标出位置类别","做精确到像素级别的分割处理"],"answer":"C"},{"no":58,"lesson":"第3课","stem":"图像分割（Image Segmentation）任务的特点是","options":["只输出整张图片的一个类别标签","用矩形框标出物体的位置和大小","判断整张图片属于什么类别","做像素级边界划分，比目标检测更精细"],"answer":"D"},{"no":59,"lesson":"第3课","stem":"智能抠图、医学影像中肿瘤区域的精确勾画，用到的是","options":["图像分割","图像分类","目标检测","图像增强与修复"],"answer":"A"},{"no":60,"lesson":"第3课","stem":"手机拍照的“人像模式”（背景虚化）用到的是","options":["图像分类，识别整张图的内容","图像分割，先分割前景再对背景虚化","目标检测，用框标出物体","图像增强与修复画质处理"],"answer":"B"},{"no":61,"lesson":"第3课","stem":"老照片修复、去模糊、超分辨率、去噪属于","options":["图像分类","目标检测","图像增强与修复","图像分割"],"answer":"C"},{"no":62,"lesson":"第3课","stem":"人脸识别基本流程的第一步是","options":["将提取到的人脸特征与库中特征进行比对匹配","从对齐后人脸上提取出用于识别的关键特征点","把检测到的人脸调整到标准姿态和统一尺寸","在图片中检测并定位出人脸所在的位置"],"answer":"D"},{"no":63,"lesson":"第3课","stem":"人脸识别流程中“人脸对齐”的作用是","options":["调整角度并做归一化","找到人脸的位置","计算两张脸相似度","判断是否为同一个人"],"answer":"A"},{"no":64,"lesson":"第3课","stem":"人脸特征点通常有","options":["10个","68个或更多","1000个","200个"],"answer":"B"},{"no":65,"lesson":"第3课","stem":"下列不属于人脸识别常见误差原因的是","options":["遮挡（戴口罩、墨镜、帽子）","光线昏暗或逆光","训练数据完全不存在偏差","角度歪斜、年龄变化"],"answer":"C"},{"no":66,"lesson":"第3课","stem":"很多人脸识别系统要求“眨眨眼、张张嘴”，其目的是","options":["提高照片的整体清晰度和亮度","增加相机的曝光和拍摄时间","校准摄像头的各项参数设置","活体检测，防照片或视频冒充真人"],"answer":"D"},{"no":67,"lesson":"第3课","stem":"AI生成人物图片最常见的问题破绽是","options":["人物细节异常，如手指数量不对、牙齿不自然","画面中的文字清晰工整、完全可辨认","画面中的光影和反射完全一致自然","画面中的物理规律表现得完全正确"],"answer":"A"},{"no":68,"lesson":"第3课","stem":"AI生成图片“光影不一致”指的是","options":["物体阴影方向完全正确无误","阴影方向、光源位置与实际场景不符","光源位置始终保持一致","图片中完全没有反射"],"answer":"B"},{"no":69,"lesson":"第3课","stem":"AI生成图片中“文字与符号乱码”指的是","options":["图片中的文字都清晰工整可读","图片中所有字体都统一规范","文字乱码、logo变形、日期异常","图片中完全没有文字存在"],"answer":"C"},{"no":70,"lesson":"第3课","stem":"判断一张图片是否由AI生成，应优先放大检查哪些部位","options":["背景颜色的分布是否均匀自然","画面的整体光线明暗程度","图片的外框边缘位置是否规整","手、文字等细节并检查光影一致性"],"answer":"D"},{"no":71,"lesson":"第3课","stem":"通过查看图片元数据（EXIF信息）判断AI生成图的做法是","options":["AI生成图通常无相机拍摄信息","AI生成图一定带完整EXIF信息","EXIF信息对判断毫无用处","只能靠肉眼观察判断"],"answer":"A"},{"no":72,"lesson":"第3课","stem":"随着技术进步，AI生成图片的破绽会","options":["AI生成图片所留下的破绽数量会变得越来越多","破绽越来越少肉眼终将难辨，重在养成核验意识","AI生成图片的破绽数量会长期保持稳定不变","破绽完全消失后仅凭肉眼即可稳定识别真伪"],"answer":"B"},{"no":73,"lesson":"第3课","stem":"下列属于计算机视觉四大任务的是","options":["语音识别","机器翻译","目标检测","文本分类"],"answer":"C"},{"no":74,"lesson":"第3课","stem":"AI的识别能力受限于","options":["显示器屏幕的尺寸大小","网络连接的速度快慢","电脑内存的容量大小","训练数据，卡通猫少了就认不出"],"answer":"D"},{"no":75,"lesson":"第3课","stem":"安防监控中识别行人和车辆，主要用到的是","options":["图像分类","目标检测","图像分割","图像增强与修复"],"answer":"B"},{"no":76,"lesson":"第4课","stem":"NLP（自然语言处理）是","options":["让计算机理解、生成、处理人类语言的技术","让计算机做加减乘除等运算的技术","让计算机对图像画面进行处理的技术","让计算机硬件进行制造与组装的技术"],"answer":"A"},{"no":77,"lesson":"第4课","stem":"下列不属于NLP基本任务的是","options":["文本分类","图像增强与修复","机器翻译","问答系统"],"answer":"B"},{"no":78,"lesson":"第4课","stem":"大语言模型（LLM）的核心能力是","options":["精确查找数据库中的答案并返回","进行精确的数学计算任务","根据上下文预测下一个最可能的词","连接互联网浏览并抓取相关网页"],"answer":"C"},{"no":79,"lesson":"第4课","stem":"下列不属于大语言模型代表的是","options":["GPT系列","豆包","DeepSeek","即梦（文生图工具）"],"answer":"D"},{"no":80,"lesson":"第4课","stem":"大模型生成回答时的工作原理是","options":["逐词预测，按概率接龙出完整回答","在数据库里查找现成答案","调用计算器逐字计算","复制粘贴网页内容"],"answer":"A"},{"no":81,"lesson":"第4课","stem":"参数规模反映的是模型的","options":["模型在运行过程中的速度快慢程度","大脑容量，参数越多能力越强成本越高","模型在物理上体积的大小程度","模型运行时所需网络带宽的高低"],"answer":"B"},{"no":82,"lesson":"第4课","stem":"上下文窗口（Context Window）指的是","options":["浏览器窗口的大小尺寸","电脑屏幕的尺寸大小","模型一次能记住的文字长度","电脑显卡的数量多少"],"answer":"C"},{"no":83,"lesson":"第4课","stem":"关于大模型做数学计算，正确的说法是","options":["大模型擅长做精确计算","大模型的计算本质是概率预测","大模型的计算结果一定能算对","不擅长精确计算，可调计算器或代码辅助"],"answer":"D"},{"no":84,"lesson":"第4课","stem":"AI幻觉（Hallucination）是指","options":["AI生成看似合理实则虚假错误的信息","AI程序发生突然死机或崩溃的故障","AI暂时无法连接网络的服务故障","AI拒绝回答用户提出的任何问题"],"answer":"A"},{"no":85,"lesson":"第4课","stem":"AI幻觉最常见的表现是","options":["回答的内容完全准确、毫无错误","引用不存在的论文、书籍或法条","直接拒绝回答任何问题","给出的回答过于简短笼统"],"answer":"B"},{"no":86,"lesson":"第4课","stem":"下列不属于AI幻觉产生原因的是","options":["模型机制基于概率而非事实","训练数据本身含有错误","模型故意撒谎欺骗用户","知识截止或提问超出模型范围"],"answer":"C"},{"no":87,"lesson":"第4课","stem":"“一本正经地胡说八道”比“明显的胡说八道”更危险，原因是","options":["这种说法在表达形式上反而更容易被人识破发现","它与明显的胡说相比所给出的内容篇幅反而更加简短","这种说法本身在叙述逻辑上显得完全没有条理","AI回答流畅自信有条理，使人很难怀疑内容真实性"],"answer":"D"},{"no":88,"lesson":"第4课","stem":"应对AI幻觉的首要方法是","options":["人工核验数据、引用、人名、日期等关键信息","完全相信AI给出的全部输出内容并直接采用","对AI的输出完全不做任何核验直接采信","只关注AI给出的最终结论是否正确合理"],"answer":"A"},{"no":89,"lesson":"第4课","stem":"“RAG思路”指的是","options":["完全不给AI提供任何参考资料就直接让它来作答","给AI提供参考资料，并让它基于这些资料来回答","让AI在回答过程中自行联网搜索相关信息","让AI在后台自动记住之前所有的对话内容"],"answer":"B"},{"no":90,"lesson":"第4课","stem":"提示词（Prompt）指的是","options":["指AI根据用户所提问题直接输出生成的最终结果文本","指模型内部用于运算的可调权重与参数数值","用户给AI的输入文字，含问题、指令、背景和示例","指训练模型时所使用的大规模语料数据集"],"answer":"C"},{"no":91,"lesson":"第4课","stem":"优质提示词四要素（C-B-I-O框架）不包括","options":["角色设定（Character）","背景信息（Background）","指令要求（Instruction）","随机种子数"],"answer":"D"},{"no":92,"lesson":"第4课","stem":"提示词四要素中的“输出格式”（Output）指的是","options":["规定输出的形式、长度、结构","告诉AI它扮演什么角色","提供相关上下文背景","给AI示例"],"answer":"A"},{"no":93,"lesson":"第4课","stem":"Few-shot（示例引导）是指","options":["一次提出很多项不同的要求","给AI一两个例子让它模仿格式和风格","完全不给任何示例","让AI自行联网搜索资料"],"answer":"B"},{"no":94,"lesson":"第4课","stem":"Chain of Thought（分步思考）是指","options":["让AI直接给出最终答案","要求AI快速作答","要求AI分步思考以提升推理准确性","让AI重复用户的问题"],"answer":"C"},{"no":95,"lesson":"第4课","stem":"下列属于提示词设计常见错误的是","options":["在提示词中对AI的角色定位设定得十分清晰明确","在提示词中为AI补充了充分完整的背景信息","在提示词中对AI的输出格式作出了明确要求","给出的指令过于模糊笼统，例如只说帮我写点东西"],"answer":"D"},{"no":96,"lesson":"第4课","stem":"单轮对话与多轮对话的区别是","options":["单轮一问一答每次独立，多轮AI会记住上文","两者在本质和效果上没有任何区别","单轮对话比多轮对话更加智能","多轮对话中AI不会记住任何内容"],"answer":"A"},{"no":97,"lesson":"第4课","stem":"下列不属于多轮对话优化策略的是","options":["先给背景再提问","一个提示词里一次塞五个不相关的任务","分步推进、每步确认后再继续","针对性修改，具体指出哪里要改"],"answer":"B"},{"no":98,"lesson":"第4课","stem":"虽然2026年模型上下文窗口很大，但仍有上限，超长对话中AI可能","options":["记住所有最早的内容","越到后面回答越准确","“忘记”最早的内容","自动增强记忆能力"],"answer":"C"},{"no":99,"lesson":"第4课","stem":"关于AI的对话记忆，正确的说法是","options":["AI会永久保存并随时调取全部对话","AI能自动联网同步和共享用户记忆","AI能跨对话长期记住用户的身份","记忆仅当前对话有效，关闭后不会记住你"],"answer":"D"},{"no":100,"lesson":"第4课","stem":"高效人机协作心态，应把AI当作","options":["聪明但需要明确指令的实习生","全知全能的权威","可以完全替代人类的工具","无需审核就能直接采用的助手"],"answer":"A"},{"no":101,"lesson":"第5课","stem":"生成式AI（Generative AI）的目标是","options":["创造文字图片音频视频代码等各类全新内容","对已有数据进行分类、识别以及结果预测工作","生成式AI的任务只限于完成图像识别这一项","生成式AI的任务只限于完成文本翻译这一项"],"answer":"A"},{"no":102,"lesson":"第5课","stem":"生成式AI的底层逻辑是","options":["直接复制粘贴已有的内容","学习内容规律，按概率重新组合生成","完全随机地乱生成内容","只负责存储和调用图片"],"answer":"B"},{"no":103,"lesson":"第5课","stem":"当前文生图的主流技术是","options":["生成对抗网络方法","神经网络大模型架构","扩散模型生成方法","声码器语音合成方法"],"answer":"C"},{"no":104,"lesson":"第5课","stem":"文生文的核心技术是","options":["扩散模型方法","生成对抗网络方法","声码器合成方法","大语言模型方法"],"answer":"D"},{"no":105,"lesson":"第5课","stem":"影响生成质量的关键因素不包括","options":["显示器分辨率","模型能力，参数规模和训练数据质量","提示词质量","随机性与后处理"],"answer":"A"},{"no":106,"lesson":"第5课","stem":"关于生成式AI，正确的认知是","options":["AI生成的内容一定事实正确、毫无差错","生成内容只是概率上最合理的组合，不一定事实正确","AI具备真正的情感和原创创造能力","AI能够产生真正突破性的原创创意"],"answer":"B"},{"no":107,"lesson":"第5课","stem":"AIGC各模态中最成熟、应用最广的是","options":["文生视频","文生图","文生文","数字人"],"answer":"C"},{"no":108,"lesson":"第5课","stem":"下列不属于文生图代表工具的是","options":["即梦","可灵","Midjourney","讯飞配音"],"answer":"D"},{"no":109,"lesson":"第5课","stem":"2026年文生视频的时长通常为","options":["5-15秒","1小时","2分钟以上","不限时长"],"answer":"A"},{"no":110,"lesson":"第5课","stem":"AI语音克隆指的是","options":["输入文字来生成对应语音","输入少量语音样本，克隆某人的声音","负责播放背景音乐","合成各种乐器的音色"],"answer":"B"},{"no":111,"lesson":"第5课","stem":"数字人（Digital Human）指的是","options":["能够在物理世界自主移动的机器人","生活在真实世界中的有情感的人","AI驱动的虚拟人物，能说话、做表情动作","用3D打印出来的人偶模型"],"answer":"C"},{"no":112,"lesson":"第5课","stem":"2026年的“多模态融合”趋势是指","options":["只能处理单一类型模态的信息","一个工具只能处理文字这一种信息","一个工具只能处理图片这一种信息","一个工具同时处理文字、图片、音频、视频"],"answer":"D"},{"no":113,"lesson":"第5课","stem":"下列不属于AIGC核心优势的是","options":["事实准确性高","效率高、成本低","创意发散、可批量","技能门槛低"],"answer":"A"},{"no":114,"lesson":"第5课","stem":"下列不属于AIGC天然局限的是","options":["事实准确性不足","生成内容永远完美无缺","情感表达欠缺","细节常有破绽、缺乏真正原创性、可控性有限"],"answer":"B"},{"no":115,"lesson":"第5课","stem":"AIGC的正确定位是","options":["创作者替代，完全无需人类参与","全自动生成且完全无需审核把关","创作助手而非替代，最佳是人机协作","只用于娱乐消遣的场合"],"answer":"C"},{"no":116,"lesson":"第5课","stem":"不同AIGC模态的成熟度，最成熟的是","options":["文生视频","数字人","文生图","文生文"],"answer":"D"},{"no":117,"lesson":"第5课","stem":"关于AI生成内容的版权归属，中国目前的法律实践是","options":["AI生成内容不直接享著作权，人类投入实质智力劳动后受保护","自首次公开发布起便自动享有完整著作权","任何内容都归社会公众自由所有、可任意使用","目前对版权归属尚未出台任何规则"],"answer":"A"},{"no":118,"lesson":"第5课","stem":"中国《人工智能生成合成内容标识办法》自何时起施行","options":["2023年","2025年9月1日","2026年1月1日","2024年"],"answer":"B"},{"no":119,"lesson":"第5课","stem":"AI生成内容的标识义务要求","options":["禁止AI生成任何内容","生成内容无需做任何标识","图片、视频、音频等内容须显式标识","只有文字内容需要标识"],"answer":"C"},{"no":120,"lesson":"第5课","stem":"学术场景使用AI的正确方式是","options":["直接照搬AI内容作为自己的学术成果","不需要向外界披露AI使用情况","引用AI数据但不做任何核实","用AI辅助思路润色翻译，但不照搬，数据须核实"],"answer":"D"},{"no":121,"lesson":"第5课","stem":"将AI生成内容用于商业用途时，应注意","options":["注意版权风险，用授权商业工具并留生成记录","可以随意使用任何AI生成的内容","无需任何授权就能直接使用","可以直接抄袭他人的原创作品"],"answer":"A"},{"no":122,"lesson":"第5课","stem":"关于AI训练数据的版权争议，当前的趋势是","options":["AI公司无需取得任何授权","要求AI公司获得授权或支付费用","训练数据可以完全免费使用","该版权问题已经彻底解决"],"answer":"B"},{"no":123,"lesson":"第5课","stem":"如果AI生成的内容与已有作品高度相似（如模仿某位画家的独特风格），可能","options":["该行为完全合法且无任何风险","该行为没有任何侵权风险","构成侵权，使用者需要承担注意义务","该行为自动免责、无需处理"],"answer":"C"},{"no":124,"lesson":"第5课","stem":"把AI生成的图片发布到社交媒体，合理的做法是","options":["发布时不对图片来源作任何标注说明而直接上传","将AI生成的图片直接冒充为真人实地拍摄的摄影作品","将AI生成的图片标注为自己原创手绘绘画作品","发布时主动标注为AI生成，以履行内容标识义务"],"answer":"D"},{"no":125,"lesson":"第5课","stem":"下列属于AI语音（语音合成/克隆）代表工具的是","options":["Midjourney，流行的AI绘画工具","即梦，流行的AI图像与短视频工具","Sora，流行的AI长视频生成模型","豆包语音、讯飞配音、ElevenLabs等语音合成工具"],"answer":"D"},{"no":126,"lesson":"第6课","stem":"AI Agent（智能体）的本质是","options":["以大模型为核心，能自主规划、调用工具并交付成果","只会一问一答，不能调用外部工具或执行操作","通过关键词匹配返回网页链接列表供人选择","识别语音并执行预设好的简单指令"],"answer":"A"},{"no":127,"lesson":"第6课","stem":"聊天AI与Agent的本质区别是","options":["聊天AI与Agent没有任何区别","聊天AI只给建议，Agent能思考、行动并交付成果","聊天AI比Agent更能独立执行具体任务","Agent不具备任何对话交流能力"],"answer":"B"},{"no":128,"lesson":"第6课","stem":"下列不属于Agent四个层次的是","options":["纯对话型","工具调用型","只会收发短信","垂直专用型（含桌面操作型）"],"answer":"C"},{"no":129,"lesson":"第6课","stem":"衡量一个Agent的价值，正确的标准是","options":["它说话是否足够漂亮动听","它的模型参数数量有多少","它是否免费提供给大家使用","它能否稳定地交付正确的成果"],"answer":"D"},{"no":130,"lesson":"第6课","stem":"经典架构公式“AI Agent = LLM + ？ + Memory + Tool Use”，其中“？”是","options":["规划（Planning）","连接器（Connector）","自动化（Automation）","协议（Protocol）"],"answer":"A"},{"no":131,"lesson":"第6课","stem":"该Agent架构公式由谁于2023年在综述中提出","options":["图灵","Lilian Weng","OpenAI现任CEO","谷歌创始人"],"answer":"B"},{"no":132,"lesson":"第6课","stem":"Agent的“大脑”（LLM）负责","options":["负责保存和调用对话的短期记忆","负责调用各种外部工具和接口","理解意图、拆解任务、推理生成响应","负责记录并更新用户的使用偏好"],"answer":"C"},{"no":133,"lesson":"第6课","stem":"Agent区别于普通AI产品的最核心能力是","options":["强大的记忆和检索能力","熟练的工具调用能力","流畅的多轮对话能力","规划能力，能拆解目标并反思纠错"],"answer":"D"},{"no":134,"lesson":"第6课","stem":"Agent的长期记忆（Long-term Memory）的作用是","options":["通过外部存储记住偏好实现个性化","只保存当前任务的上下文信息","不保存任何与用户相关的内容","只保存临时产生的中间文件"],"answer":"A"},{"no":135,"lesson":"第6课","stem":"WorkBuddy的“用户档案”属于","options":["用户档案属于只在单次对话内有效的短期记忆","属于长期记忆，自我介绍写入一次后续任务自动参考","用户档案属于Agent调用外部应用的工具使用能力","用户档案属于Agent自主拆解任务的规划能力范畴"],"answer":"B"},{"no":136,"lesson":"第6课","stem":"工具使用（Tool Use）的作用是","options":["工具使用这一能力仅仅用于和用户进行普通的聊天对话","工具使用这一能力仅仅用于在后台保存用户记忆","让Agent调用搜索代码文件等，是对话走向行动的桥梁","工具使用这一能力在Agent系统当中没有任何实际作用"],"answer":"C"},{"no":137,"lesson":"第6课","stem":"连接器（Connector）的作用是","options":["连接器这一部件的作用仅仅是为Agent连接外部网络","连接器这一部件的作用是在本地存储Agent产生的数据","连接器这一部件的作用是代替人与用户进行聊天对话","让Agent直接操控问卷、文档、邮箱、会议等外部应用"],"answer":"D"},{"no":138,"lesson":"第6课","stem":"自动化（Automation）的本质是","options":["把周期任务定时执行，规划延伸到时间维度","让Agent只说一句话就算完成","只完成一次性的简单任务","无需任何配置和人工设置"],"answer":"A"},{"no":139,"lesson":"第6课","stem":"Anthropic开源的MCP（模型上下文协议）被称为","options":["AI的大脑，负责推理与决策","“AI的USB-C接口”","AI的记忆，负责保存信息","AI的双手，负责执行操作"],"answer":"B"},{"no":140,"lesson":"第6课","stem":"MCP（模型上下文协议）于2024年底由谁开源","options":["谷歌（Google）","OpenAI","Anthropic","Meta"],"answer":"C"},{"no":141,"lesson":"第6课","stem":"A2A协议主要解决的是","options":["人与AI之间的对话","单个Agent的内部计算","数据的存储","Agent之间的横向协作"],"answer":"D"},{"no":142,"lesson":"第6课","stem":"讲义把连接器与MCP的关系类比为","options":["类比为电器与插座，统一标准后任何Agent接上即可用","讲义将二者关系类比为人类身体的大脑与双手之间","讲义将二者关系类比为Agent的长期记忆系统与工具之间","讲义认为连接器与MCP两者之间其实没有任何关系"],"answer":"A"},{"no":143,"lesson":"第6课","stem":"多智能体协作中“项目容器”的意义是","options":["只用来存储和归档各种项目文件","把任务、规则、资料放进同一项目，指令一次全员继承","用来记录历史的聊天记录内容","用来定义Agent与Agent之间的通信协议"],"answer":"B"},{"no":144,"lesson":"第6课","stem":"下列不属于Agent核心优势的是","options":["执行效率高","不知疲倦","绝对不出错","个性化复用、跨应用协作"],"answer":"C"},{"no":145,"lesson":"第6课","stem":"下列不属于Agent天然局限的是","options":["可能产生幻觉","长流程任务执行不稳定","存在权限风险、缺乏价值判断","永远正确、无需审核"],"answer":"D"},{"no":146,"lesson":"第6课","stem":"Agent的正确定位是","options":["AI辅助人工核心，Agent管效率，人负责方向审核决策","Agent的正确定位是完全代替人类承担全部日常工作任务","Agent在交付最终成果时不需要进行任何人工审核把关","Agent在人机协作当中只负责做出最终决策这一环节"],"answer":"A"},{"no":147,"lesson":"第6课","stem":"按照实验铁律，Agent生成的每一份成果都必须","options":["直接投入使用即可","人工核对关键数值与事实后方可使用","完全不做任何核对","只核对图表的样式是否美观"],"answer":"B"},{"no":148,"lesson":"第6课","stem":"“50%任务完成时间水平线”衡量的是","options":["Agent的售卖价格是否便宜实惠","Agent的运行速度是否足够快","Agent以五成把握完成专家级任务所需时长","Agent的模型参数规模是大是小"],"answer":"C"},{"no":149,"lesson":"第6课","stem":"头部模型在复杂软件工程任务上，“50%任务完成时间水平线”已达到约","options":["5分钟","10分钟","1天","50分钟"],"answer":"D"},{"no":150,"lesson":"第6课","stem":"面对Agent汇报“平均分76.5”，最稳妥的做法是","options":["直接照单全收并加以采用","认为结果无所谓、不必在意","自己抽笔算一遍，审核关键数值与事实","立刻采用并对外公开公布"],"answer":"C"},{"no":151,"lesson":"第7课","stem":"AI偏见（算法偏见）是指","options":["在数据、算法、使用环节形成的系统性不公平倾向","AI在主观上所具有的恶意动机","AI主动对特定人群实施歧视行为","AI在运行中产生的偶然随机错误"],"answer":"A"},{"no":152,"lesson":"第7课","stem":"关于AI偏见，正确的说法是","options":["AI存在偏见说明AI从其诞生之日起天生就会歧视他人","AI本身无主观好恶，它学到的是人类历史数据中的偏见","AI由纯算法驱动因此绝对客观公正而不存在任何偏见","AI是否存在偏见与其所用的训练数据之间毫无关系"],"answer":"B"},{"no":153,"lesson":"第7课","stem":"亚马逊AI招聘系统（2018）的案例说明","options":["AI招聘系统在选拔人才时绝对公平公正","AI招聘系统在使用过程中不会产生歧视","历史简历男性占比极高，模型压低女性分数最终被弃用","AI招聘的实际效果优于任何形式的人工招聘"],"answer":"C"},{"no":154,"lesson":"第7课","stem":"COMPAS再犯风险预测（美国司法）的调研发现","options":["调研发现COMPAS系统给出的预测结果完全公平","调研在COMPAS再犯预测系统中没有发现任何统计偏差","调研发现黑人被告被标记高风险的概率反而更低","黑人被告被错误标记高再犯风险的概率为白人1.5倍"],"answer":"D"},{"no":155,"lesson":"第7课","stem":"AI偏见四大来源中，作为“根源”的是","options":["是数据偏见，训练数据集中自带人类历史社会偏见","四大来源中作为根源的是算法设计本身带来的偏见","四大来源中作为根源的是技术落地使用环节的偏见","四大来源中作为根源的是输出反哺训练的反馈循环"],"answer":"A"},{"no":156,"lesson":"第7课","stem":"AI偏见四大来源中，作为“放大器”的是","options":["四大来源中作为放大器的是训练数据自带的数据偏见","是算法偏见，目标函数与特征选择会放大歧视","四大来源中作为放大器的是技术落地使用的偏见","四大来源中作为放大器的是输出反哺训练的循环"],"answer":"B"},{"no":157,"lesson":"第7课","stem":"“反馈循环”（恶性循环）是指","options":["所谓反馈循环指的是AI系统在运行过程中彻底停止学习","所谓反馈循环指的是训练数据集始终保持固定不变","AI输出反成为新训练数据，使偏见持续强化如信息茧房","所谓反馈循环在AI系统中其实根本就不存在"],"answer":"C"},{"no":158,"lesson":"第7课","stem":"下列不属于应对AI偏见方法的是","options":["保持批判性思维","交叉验证","溯源数据、主动反馈纠错","重大决策直接采信AI输出"],"answer":"D"},{"no":159,"lesson":"第7课","stem":"下列不属于AI时代五大隐私风险的是","options":["免费使用毫无风险","对话内容被用于模型训练","平台数据泄露风险","隐私推断攻击、数据二次流转、生物特征数据高危"],"answer":"A"},{"no":160,"lesson":"第7课","stem":"生物特征数据（人脸、声纹）的特殊风险在于","options":["可以像密码一样随时重置修改","一旦泄露无法重置修改，风险长期存在","完全没有任何风险","可以随意在社交平台分享"],"answer":"B"},{"no":161,"lesson":"第7课","stem":"下列不属于个人信息保护六条实操法则的是","options":["不输入敏感信息","关闭训练数据采集开关","随意上传身份证、银行卡信息","数据脱敏、清理会话、阅读隐私政策、优先隐私模式或企业版"],"answer":"C"},{"no":162,"lesson":"第7课","stem":"对原始文本“张三，上海XX大学，学号202401001，实验得到数据12.7mg/L”进行脱敏，合理写法是","options":["合理脱敏做法是保留原文中的真实姓名张三不予替换","合理脱敏做法是保留原文中的真实学号202401001","合理脱敏做法是保留原文中的精确实验数值12.7mg/L","某同学某高校，样本编号S001，实测浓度约13mg/L"],"answer":"D"},{"no":163,"lesson":"第7课","stem":"2025年全国AI诈骗案件同比增长约","options":["300%","10%","50%","保持不变"],"answer":"A"},{"no":164,"lesson":"第7课","stem":"AI语音克隆仅需多少秒的语音样本就可以复刻音色","options":["1小时","3-5秒","1分钟","1天"],"answer":"B"},{"no":165,"lesson":"第7课","stem":"下列不属于五大常见AI诈骗手段的是","options":["AI语音克隆诈骗","AI换脸视频诈骗","AI免费大礼包","AI个性化钓鱼邮件、虚假AI客服"],"answer":"C"},{"no":166,"lesson":"第7课","stem":"下列不属于AI伪造视频破绽的是","options":["面部细节异常（眨眼频率不正常等）","光影矛盾","音画不同步、背景畸变扭曲","画面内容完全真实可信"],"answer":"D"},{"no":167,"lesson":"第7课","stem":"下列不属于AI伪造语音破绽的是","options":["语音绝对自然、毫无破绽","背景噪音突兀、忽大忽小","语速过分均匀、缺少人类自然停顿和语气词","情绪僵硬、语音情绪和说话内容冲突"],"answer":"A"},{"no":168,"lesson":"第7课","stem":"识别AI伪造内容的黄金通用原则是","options":["识别AI伪造内容的黄金原则是只要接到任何来电就相信对方","涉及金钱转账必须经独立渠道二次核验，不凭来电视频确认","识别AI伪造内容的黄金原则是直接按对方要求转账即可","识别AI伪造内容的黄金原则是看到视频就确认对方身份"],"answer":"B"},{"no":169,"lesson":"第7课","stem":"AI诈骗防护“三不原则”是","options":["AI诈骗防护三不原则指的是对任何来电都一律不接听","AI诈骗防护三不原则指的是在微信上不和任何陌生人聊天","不轻信陌生来电消息，不泄露隐私，未二次核实绝不转账","AI诈骗防护三不原则指的是既不转账也不做任何核实"],"answer":"C"},{"no":170,"lesson":"第7课","stem":"与家人朋友约定“专属身份验证暗号”之所以有效，是因为","options":["约定暗号之所以有效是因为AI能够完全复刻这个暗号本身","约定暗号之所以有效是因为人的声音本来就可被复制","约定暗号之所以有效是因为人的人脸本来就可被复制","AI能复刻声音和人脸，却复刻不了两人独有的私人记忆"],"answer":"D"},{"no":171,"lesson":"第7课","stem":"我国第一部专门保护个人信息的法律是","options":["《个人信息保护法》（2021）","《网络安全法》","《数据安全法》","《生成式人工智能服务管理暂行办法》"],"answer":"A"},{"no":172,"lesson":"第7课","stem":"《生成式人工智能服务管理暂行办法》自何时起施行","options":["2021年","2023年8月15日","2025年","2026年"],"answer":"B"},{"no":173,"lesson":"第7课","stem":"我国网络与数据安全的三大支柱法律是","options":["我国网络数据安全的三大支柱法律是刑法、民法与合同法","我国网络数据安全领域目前只有《网络安全法》一部","即《网络安全法》《数据安全法》《个人信息保护法》","我国网络数据安全领域目前只有《暂行办法》一部"],"answer":"C"},{"no":174,"lesson":"第7课","stem":"下列不属于《个人信息保护法》第四章赋予公民法定权利的是","options":["知情权、同意权","查询权、更正权","删除权、撤回同意权、数据可携权","无条件查阅他人信息权"],"answer":"D"},{"no":175,"lesson":"第7课","stem":"下列不属于免费AI工具“免费”代价的是","options":["完全没有代价","你的数据就是产品（对话、上传内容可能被用于模型训练）","精准画像与定向投放","安全投入不足、知识产权让渡"],"answer":"A"},{"no":176,"lesson":"第8课","stem":"医疗健康领域，AI辅助识别CT、MRI、X光片中的病灶，其准确率已","options":["接近或超过资深医生","远低于普通医生","完全无法实现","只用于娱乐场景"],"answer":"A"},{"no":177,"lesson":"第8课","stem":"教育培训领域，AI根据学生水平和学习数据自适应调整学习内容和难度，属于","options":["智能备课","个性化学习","AI助教","语言学习"],"answer":"B"},{"no":178,"lesson":"第8课","stem":"工业制造领域，AI分析设备传感器数据、预测故障并提前维护，属于","options":["质量检测","智能排产","预测性维护","数字孪生"],"answer":"C"},{"no":179,"lesson":"第8课","stem":"文化娱乐领域，AI驱动的虚拟主播、虚拟偶像属于","options":["内容生成","个性化推荐","游戏AI","虚拟偶像、数字人"],"answer":"D"},{"no":180,"lesson":"第8课","stem":"金融服务领域，AI实时检测异常交易属于","options":["反欺诈","风险评估","智能投顾","算法交易"],"answer":"A"},{"no":181,"lesson":"第8课","stem":"法律行业，AI审查企业业务是否符合法规要求属于","options":["合同审查","合规审查","案例检索","法律咨询"],"answer":"B"},{"no":182,"lesson":"第8课","stem":"AI在各行业应用的共性逻辑，三个方向不包括","options":["替代重复劳动","辅助复杂决策","替代人类的独立思考","创造全新体验"],"answer":"C"},{"no":183,"lesson":"第8课","stem":"AI对就业的三种影响是","options":["岗位消失且不再产生新岗位","只有岗位替代一种","只有岗位创造一种","岗位替代、岗位变革、岗位创造"],"answer":"D"},{"no":184,"lesson":"第8课","stem":"更容易被AI替代的岗位特征是","options":["工作重复性高、规则明确，主要处理标准化信息","需要创造性与突破性思维，AI难以胜任此类工作","需要复杂人际互动与情感投入，AI难以替代","需要复杂决策与伦理判断，人类更具独特优势"],"answer":"A"},{"no":185,"lesson":"第8课","stem":"下列不属于“更难被AI替代”的岗位是","options":["心理咨询师","基础数据录入","护士","外科医生"],"answer":"B"},{"no":186,"lesson":"第8课","stem":"关键认知“不是AI替代人，而是”","options":["AI会替代掉所有的工作岗位","人完全不需要学习AI","会用AI的人替代不会用AI的人","AI会替代掉整个职业"],"answer":"C"},{"no":187,"lesson":"第8课","stem":"放射科医生的案例说明","options":["放射科医生这一整个岗位已被AI完全替代而消失殆尽","AI直接取代放射科医生，医院从此不再需要该医生","医生看片诊断与临床沟通的工作内容前后毫无改变","AI只替代岗位中重复任务，医生转为审核与临床沟通"],"answer":"D"},{"no":188,"lesson":"第8课","stem":"未来方向“具身智能与机器人”是指","options":["AI从虚拟走向物理世界，机器人在现实中感知决策行动","AI能力始终只在云端运行，完全无法接触物理世界","AI应用只局限于网页浏览器中，并不涉及任何实体设备","未来世界永远不会出现任何形式的机器人或智能硬件"],"answer":"A"},{"no":189,"lesson":"第8课","stem":"“端侧AI与AI硬件”是指","options":["AI能力始终只集中在云端服务器，终端设备无需任何算力","AI能力从云端下沉到终端，本地运行响应更快且隐私更好","手机眼镜汽车等终端设备本身完全不需要内置AI能力","AI计算只在远端服务器上运行，本地终端设备完全不参与"],"answer":"B"},{"no":190,"lesson":"第8课","stem":"开源大模型（如DeepSeek、Qwen、Llama等）的意义是","options":["开源大模型大幅提高了AI使用与企业部署的整体成本","开源大模型技术尚不成熟，实际上不具备任何实际意义","性能持续提升缩小与闭源差距，降低使用成本并促进创新","开源大模型仅供学术界做研究，无法真正落地到产业应用"],"answer":"C"},{"no":191,"lesson":"第8课","stem":"关于AI的未来发展，需要理性看待的是","options":["通用人工智能AGI已经在现实世界中完全实现并被广泛普及","AI已经具备真正的理解力、自我意识与人类情感","AI的未来发展不受任何技术算力与伦理的局限","AGI仍未实现，AI缺乏真正理解意识情感，面临多重挑战"],"answer":"D"},{"no":192,"lesson":"第8课","stem":"个人AI能力模型的两个维度是","options":["AI操作能力与AI难以替代的核心能力两个维度","只需学会使用各种AI工具，完全无需培养其他能力","只培养个人核心能力，完全不需要学习使用AI","AI时代无需学习任何能力，坐等技术自然进步"],"answer":"A"},{"no":193,"lesson":"第8课","stem":"AI操作能力在AI时代属于","options":["它是个人在AI时代极难被替代的长期核心竞争力","基础门槛，相对易学且会随工具普及而逐渐贬值","AI操作能力在实际工作中几乎毫无用处","AI操作能力只有少数技术人员才需要掌握"],"answer":"B"},{"no":194,"lesson":"第8课","stem":"核心能力（创造力、复杂沟通、批判性思维、情感共情、伦理判断等）属于","options":["这些核心能力其实都可以在很短时间内快速速成加以掌握","它们只是AI时代人人都能轻松跨过的基础门槛而已","长期竞争力，是AI难以替代的独特价值，越积累越增值","这些传统核心能力在AI时代已经变得完全过时无用"],"answer":"C"},{"no":195,"lesson":"第8课","stem":"最佳策略“复合能力模型”是指","options":["只依赖AI工具，完全不再培养其他能力","只靠个人核心能力，完全拒绝使用AI工具","放弃学习AI，只深耕传统专业技能","同时发展AI操作能力与核心能力，形成人机协作复合竞争力"],"answer":"D"},{"no":196,"lesson":"第8课","stem":"技术类专业（计算机、电子、自动化等）的侧重点是","options":["AI操作要求更高，需深入学技术并发展系统设计等核心能力","只需会用现成工具，无需理解底层原理","完全不需要学习AI相关前沿知识","只需埋头学纯理论，不接触实际应用"],"answer":"A"},{"no":197,"lesson":"第8课","stem":"商科类专业（金融、管理、营销等）的侧重点是","options":["偏重科研深度，多发表论文走纯学术路线","AI操作侧重数据分析工具，重点发展商业判断、沟通与领导力","完全不需要AI工具，仅凭个人经验即可应对","只需埋头学编程语言，无需理解业务场景"],"answer":"B"},{"no":198,"lesson":"第8课","stem":"关于学习能力，下列说法正确的是","options":["学习能力在AI时代其实无关紧要，技术会帮人搞定一切","学习能力只在学生读书时期重要，工作后不再需要","学习能力是最重要核心能力之一，须建立终身学习意识","学习能力只在刚入职工作时需要，老员工无需再学"],"answer":"C"},{"no":199,"lesson":"第8课","stem":"学生A与学生B的案例说明","options":["AI操作能力只是加分项，并非求职发展的必备项","相比之下个人核心能力并不重要，可有可无","不会使用AI也能在职业道路上正常发展晋升","AI操作能力是必备项，核心能力决定你能走多远"],"answer":"D"},{"no":200,"lesson":"第8课","stem":"本课程的结课综合大作业题目是","options":["课程结课作业完全不需要做任何调研，随便写点即可","撰写人工智能在本专业领域应用调研与创新思考报告","只需提交一篇简短的课程学习心得体会即可","课程结课不需要提交任何形式的报告或作业"],"answer":"B"},{"no":201,"lesson":"第1课","stem":"下列最能体现“AI从数据中学习规律”的例子是","options":["给机器大量标注图片，让机器自己琢磨区别","人工写出如果是猫就输出猫的规则","让机器背下所有人写的固定规则","机器只执行人写死的操作步骤"],"answer":"A"},{"no":202,"lesson":"第1课","stem":"关于AI产品的存在形式，下列说法正确的是","options":["AI只能以实体机器人的形式存在，不能是纯软件产品","更多AI以软件形式存在于手机App中，机器人只是载体","任何AI产品都必须拥有实体机器人外壳才能正常运行","AI只存在于封闭实验室当中，从未真正走入大众日常生活"],"answer":"B"},{"no":203,"lesson":"第1课","stem":"关于“AI寒冬”，下列说法正确的是","options":["AI发展历史上从未发生过所谓AI寒冬这一现象","AI寒冬指AI技术被大众彻底遗忘而长期无人问津","两次AI寒冬发生在低谷期，因技术瓶颈导致投资大幅减少","AI寒冬在人类历史上只发生过一次，且其影响范围非常小"],"answer":"C"},{"no":204,"lesson":"第1课","stem":"下列AI发展时间轴事件顺序正确的是","options":["深蓝胜棋王在2022年，深度学习突破在1997年","图灵测试概念在2022年才被正式提出","AI Agent浪潮在2012年才开始崛起","图灵测试→深蓝→深度学习→ChatGPT→Agent的演进"],"answer":"D"},{"no":205,"lesson":"第1课","stem":"简单事实查询（如“今天星期几”）最适合使用","options":["第一代传统搜索引擎","AI Agent","只能使用AI Agent","AI搜索且无需核验"],"answer":"A"},{"no":206,"lesson":"第1课","stem":"第二代AI搜索的核心优势是","options":["信息量最大但所有搜索结果仍需人工逐条去筛选整合","直接给出答案并附上可追溯来源，省去信息整合时间","能像智能体一样完全自主地帮用户完成全部任务","给出的答案干净利落，完全不需要任何来源引用"],"answer":"B"},{"no":207,"lesson":"第1课","stem":"第三代AI Agent的局限是","options":["执行过程没有任何限制和局限","输出的结果完全可靠无需把关","执行过程不可完全受控，需人工审核","不能调用任何外部工具"],"answer":"C"},{"no":208,"lesson":"第1课","stem":"三代信息获取方式的输出形式演变顺序是","options":["完整成果→链接列表→整合答案","整合答案→链接列表→完整成果","始终都是链接列表","链接列表→整合答案→完整成果"],"answer":"D"},{"no":209,"lesson":"第1课","stem":"图像创作类AI场景（AI修图、AI生成图片、老照片修复）的核心是","options":["看懂和创造图像","你是谁","猜你喜欢","优化决策"],"answer":"A"},{"no":210,"lesson":"第1课","stem":"“语音转文字、AI配音、Siri语音交互”属于哪一类AI场景","options":["身份识别类，如人脸指纹识别","语音交互类（听懂和说出）","图像创作类，如生成设计图","内容推荐类，如视频信息流推荐"],"answer":"B"},{"no":211,"lesson":"第1课","stem":"学习办公类AI场景（AI写作、PPT生成、翻译、数据分析）的核心是","options":["猜你喜欢","你是谁","提升效率","听懂和说出"],"answer":"C"},{"no":212,"lesson":"第1课","stem":"关于三代信息获取方式，下列说法正确的是","options":["获取信息后都完全不需要人工核验","AI搜索结果最可靠，无需人工核验","传统搜索信息量在三代中最为有限","不同场景各有最优选择，AI搜索与Agent输出都需人工核验"],"answer":"D"},{"no":213,"lesson":"第2课","stem":"下列任务更适合传统编程的是","options":["判断“什么样的图片是猫”","判断邮件是否为垃圾邮件","推荐你可能喜欢的电影","红绿灯倒计时（规则简单明确）"],"answer":"D"},{"no":214,"lesson":"第2课","stem":"“给小孩看一万张猫和狗的照片，让他自己琢磨区别”类比的是","options":["传统编程","机器学习","数据库查询","人工编写规则"],"answer":"B"},{"no":215,"lesson":"第2课","stem":"传统编程范式可以概括为","options":["数据+结果→规则","结果→规则→预测","规则+数据→结果","数据→规则"],"answer":"C"},{"no":216,"lesson":"第2课","stem":"机器学习范式可以概括为","options":["规则加数据就能直接得到结果","只有规则就能直接得到结果","只有数据就能直接得到结果","数据+结果→规则→新数据→预测"],"answer":"D"},{"no":217,"lesson":"第2课","stem":"监督学习的典型应用是","options":["图像分类、垃圾邮件过滤、房价预测","客户分群与市场细分","异常检测与数据降维","游戏AI如AlphaGo"],"answer":"A"},{"no":218,"lesson":"第2课","stem":"无监督学习的典型应用是","options":["图像分类与文本分类","客户分群、异常检测、数据降维","房价预测等回归任务","游戏AI下棋"],"answer":"B"},{"no":219,"lesson":"第2课","stem":"强化学习的典型应用是","options":["垃圾邮件过滤与文本分类任务","客户分群与市场细分的任务","游戏AI、机器人控制与自动驾驶决策","房价预测与图像分类任务"],"answer":"C"},{"no":220,"lesson":"第2课","stem":"本课实验（零代码AI图像分类）使用的是哪种学习方式","options":["使用没有标签的样本让AI自行发现数据内在结构","通过奖励与惩罚机制让AI在试错中学会完成任务","由程序员手动编写规则代码来实现图像分类功能","监督学习，给图片打上标签让AI自行学习分类"],"answer":"D"},{"no":221,"lesson":"第2课","stem":"训练集、验证集、测试集的大致占比是","options":["70%、15%、15%","15%、70%、15%","各占三分之一","90%、5%、5%"],"answer":"A"},{"no":222,"lesson":"第2课","stem":"模型（Model）可以理解为","options":["一台高性能的电脑","AI从数据中习得的规律函数","用于训练的数据集合","一段固定程序代码"],"answer":"B"},{"no":223,"lesson":"第2课","stem":"训练过程的第一步是","options":["选择算法","用训练集训练模型","准备数据，收集清洗标注","用测试集评估最终效果"],"answer":"C"},{"no":224,"lesson":"第2课","stem":"关于理想状态的模型，正确的说法是","options":["只在训练集上表现好","只在全新的数据上表现好","把训练特例全部记住","学到真正规律并能在新数据泛化"],"answer":"D"},{"no":225,"lesson":"第2课","stem":"关于数据量对模型效果的影响，下列说法正确的是","options":["数据太少易过拟合，加数据可防过拟合","数据量的多少与模型效果完全无关","数据越多模型的复杂度反而越低","数据越多就一定会出现过拟合问题"],"answer":"A"},{"no":226,"lesson":"第3课","stem":"灰度图每个像素由几个数字表示","options":["1个","3个","2个","4个"],"answer":"A"},{"no":227,"lesson":"第3课","stem":"AI识别图像的中层（第二层）识别的是","options":["边缘、线条、颜色块","纹理和局部形状，如眼睛、轮子","整张图片是什么","整体的语义含义"],"answer":"B"},{"no":228,"lesson":"第3课","stem":"关于AI识别能力受限于训练数据，最贴切的例子是","options":["数据全是大狗就能认出小狗","训练数据与识别能力无关","数据里卡通猫少就认不出卡通猫","AI根本不需要训练数据"],"answer":"C"},{"no":229,"lesson":"第3课","stem":"相册自动分类、医学影像初步筛查主要用到","options":["目标检测","图像分割","图像增强","图像分类"],"answer":"D"},{"no":230,"lesson":"第3课","stem":"自动驾驶识别行人和车辆属于","options":["目标检测","图像分类","图像增强","图像修复"],"answer":"A"},{"no":231,"lesson":"第3课","stem":"自动驾驶的道路区域识别、智能抠图用到","options":["目标检测","图像分割","图像分类","图像增强"],"answer":"B"},{"no":232,"lesson":"第3课","stem":"“去模糊、超分辨率、去噪、视频画质提升”属于","options":["目标检测","图像分类","图像增强与修复","图像分割"],"answer":"C"},{"no":233,"lesson":"第3课","stem":"人脸识别基本流程的正确顺序是","options":["先做特征提取再做人脸检测，最后才进行特征比对","先做人脸对齐再做人脸检测，最后才进行比对","先做特征比对再做特征提取，最后才进行检测","人脸检测、人脸对齐、特征提取、特征比对到判断"],"answer":"D"},{"no":234,"lesson":"第3课","stem":"下列不属于人脸识别应用的是","options":["语音转文字","刷脸支付","手机解锁","门禁考勤、安防追逃"],"answer":"A"},{"no":235,"lesson":"第3课","stem":"“AI偏见”在人脸识别中的表现是","options":["对所有人的识别结果都一致","数据偏差使某些人种性别准确率低","识别过程没有任何偏差","系统只对真人有效"],"answer":"B"},{"no":236,"lesson":"第3课","stem":"判断一张人物照片是否由AI生成，应优先检查","options":["优先检查整张照片背景区域所使用的颜色是否自然","优先检查照片打印出来后四周所带的外框样式","手部手指数量、牙齿耳朵左右眼等容易出错的细节","优先查看这张照片在磁盘上所占的文件大小数值"],"answer":"C"},{"no":237,"lesson":"第3课","stem":"建立“不轻信、会核验”的意识之所以重要，是因为","options":["AI生成的图片永远完美无缺","靠肉眼识别永远都可靠","任何图片都无需进行核验","技术越进步破绽越少，肉眼终不可靠"],"answer":"D"},{"no":238,"lesson":"第4课","stem":"下列哪项不属于自然语言处理（NLP）的基本任务","options":["图像分割","情感分析","命名实体识别","机器翻译"],"answer":"A"},{"no":239,"lesson":"第4课","stem":"大语言模型是基于什么训练的","options":["只基于少量精选示例样本来完成模型的训练工作","基于书籍网页文章代码等海量文本数据进行训练","完全依赖人工编写的规则代码来驱动模型运行","仅使用人工精心标注好的少量标签数据进行训练"],"answer":"B"},{"no":240,"lesson":"第4课","stem":"2026年主流大模型的参数规模大致是","options":["几十万","几万","数十亿到万亿级别","只有几千"],"answer":"C"},{"no":241,"lesson":"第4课","stem":"上下文窗口决定的是","options":["模型的运行速度快慢","模型的参数数量多少","电脑显卡的数量多少","AI能处理多长的对话和文档"],"answer":"D"},{"no":242,"lesson":"第4课","stem":"大模型“预测下一个词”导致其不擅长的任务是","options":["精确的数学计算","生成连贯的文本","文本翻译","写文章"],"answer":"A"},{"no":243,"lesson":"第4课","stem":"AI幻觉在学术场景的危险性主要体现在","options":["AI给出的答案往往过于简短笼统","引用不存在的文献无法溯源，后果严重","AI的回答不够流畅、缺乏条理","AI直接拒绝回答用户提出的问题"],"answer":"B"},{"no":244,"lesson":"第4课","stem":"应对AI幻觉，正确的做法是","options":["直接引用AI给出的文献","完全相信AI提供的数据","对关键数据人工核验并交叉验证","不核验直接使用"],"answer":"C"},{"no":245,"lesson":"第4课","stem":"提示词四要素C-B-I-O中，I（Instruction）指的是","options":["角色设定，告诉AI扮演谁","背景信息，提供上下文情境","输出格式，规定回答的形式","指令要求，明确要AI做什么"],"answer":"D"},{"no":246,"lesson":"第4课","stem":"劣质提示词“写个招新文案”的主要问题是","options":["太模糊，AI不清楚写给谁、何种风格、篇幅多长","问题在于提示词写得太过具体，限制了AI发挥","主要毛病在于其中给出的角色设定过于清晰明确","缺点在于它把最终的输出格式规定得太过明确具体"],"answer":"A"},{"no":247,"lesson":"第4课","stem":"“提示词不是咒语”，核心是","options":["核心其实在于熟练背诵各种各样现成的固定提示词模板","先想清楚自己要什么，再清晰具体完整地告诉AI","诀窍是在一次提问中尽可能塞进很多不同的任务","做法是不给AI任何背景信息，只抛出一句指令"],"answer":"B"},{"no":248,"lesson":"第4课","stem":"多轮对话中“先给背景再提问”的好处是","options":["AI根本不会真正记住你之前所提供过的那些背景信息内容","这样做只会毫无意义地让整段对话变得更长而已","先把相关背景信息告知AI，上下文更丰富回答更贴合需求","AI本身根本不需要任何背景信息也能回答得很出色"],"answer":"C"},{"no":249,"lesson":"第4课","stem":"当对话跑偏或上下文混乱时，最好的做法是","options":["继续在混乱对话里纠缠","坚持不更换对话","装作没发生继续使用","开新对话并重新交代背景"],"answer":"D"},{"no":250,"lesson":"第4课","stem":"“把AI当作聪明但需要明确指令的实习生”给我们的启示是","options":["清晰告知要或不要什么并审核产出，人主导方向、AI执行细节","完全放手让AI自主决策，人不再参与","AI产出十分可靠，人无需审核修改","AI无所不能，不需明确指令就能做好"],"answer":"A"},{"no":251,"lesson":"第5课","stem":"生成式AI与判别式AI的区别是","options":["生成式AI创造新内容，判别式AI做分类识别与预测","二者在技术本质与应用场景上完全相同","判别式AI的主要目标是学习规律并创造全新内容","生成式AI只能完成分类识别预测这类判别任务"],"answer":"A"},{"no":252,"lesson":"第5课","stem":"生成式AI生成内容的方式是","options":["直接从已有素材库中复制粘贴现成内容","学习数据规律后按概率重新组合新内容","完全随机地生成毫无逻辑关联的内容","只负责存储已有内容本身并不参与创作"],"answer":"B"},{"no":253,"lesson":"第5课","stem":"语音生成（文生语音）主要基于","options":["扩散模型","Transformer架构","声码器和语言模型","GAN"],"answer":"C"},{"no":254,"lesson":"第5课","stem":"生成质量受“随机性”影响，表现为","options":["相同提示词每次生成的结果必然完全相同","生成结果完全可预测且不存在任何波动","整个生成过程中不涉及任何随机因素","相同提示词因随机种子每次结果可能不同"],"answer":"D"},{"no":255,"lesson":"第5课","stem":"下列不属于文生视频代表工具的是","options":["讯飞配音","可灵","即梦","Sora"],"answer":"A"},{"no":256,"lesson":"第5课","stem":"数字人（Digital Human）的代表工具是","options":["Midjourney","剪映数字人、HeyGen、腾讯智影","DeepSeek","Stable Diffusion"],"answer":"B"},{"no":257,"lesson":"第5课","stem":"AIGC“可批量”的优势是指","options":["每次只能生成一个内容且无法重复产出","完全不具备批量生成多种内容的能力","可一次性生成大量变体适配多版本需求","批量生成内容往往会导致整体质量明显下降"],"answer":"C"},{"no":258,"lesson":"第5课","stem":"AI生成内容“缺乏真正原创性”的含义是","options":["AI能够产生人类难以企及的突破性创意","AI生成的每一段内容都是完全新颖的","AI可以独立地产生真正意义上的原创作品","AI基于已有数据组合模式难有突破性创意"],"answer":"D"},{"no":259,"lesson":"第5课","stem":"按照讲义观点，AI生成内容与人类创作的最大区别是","options":["AI缺乏真情实感和个人体验","AI更有真实情感","AI更原创","AI内容更真实可信"],"answer":"A"},{"no":260,"lesson":"第5课","stem":"使用者发布AI生成内容时应","options":["发布AI生成内容时完全不做任何来源标注","应主动标注内容由AI生成以履行标识义务","把AI生成的内容直接标注为真人原创作品","发布AI生成内容后无需向读者作任何说明"],"answer":"B"},{"no":261,"lesson":"第5课","stem":"训练数据版权争议的实质是","options":["训练数据版权这一问题已经得到完全解决","用于训练的数据天然免费且不存在任何限制","AI训练用受版权保护内容是否侵权存争议","AI模型训练过程完全不需要使用任何数据"],"answer":"C"},{"no":262,"lesson":"第5课","stem":"用AI辅助写作的正确边界是","options":["写学术文章时可以整篇直接照搬AI生成的内容","把AI生成的文字直接冒充自己的原创作品","提交学术作业时完全不用披露AI的使用情况","可用AI整理思路润色翻译但不得照搬需披露"],"answer":"D"},{"no":263,"lesson":"第6课","stem":"聊天AI“只能‘说’”体现在","options":["只能输出文字建议具体操作仍需人工完成","能够直接帮用户生成并交付可下载文件","可以代替用户直接操作外部各类应用","对话结束后能够直接为用户交付完整成果"],"answer":"A"},{"no":264,"lesson":"第6课","stem":"课堂对比实验中，Agent与聊天AI对“收集垃圾处理研究文献”的差异是","options":["聊天AI与智能体两者都能提供完整论文文件","聊天AI只给标题清单智能体真实下载了论文","聊天AI与智能体两者都会实际下载论文","智能体只给出文献标题清单并不下载论文"],"answer":"B"},{"no":265,"lesson":"第6课","stem":"Agent的层次越高，其特点是","options":["智能体层次越高其自主行动能力反而越低","智能体层次越高其交付任务能力反而越弱","智能体层次越高自主与交付越强越需监督","智能体层次越高则完全不需要人工监督"],"answer":"C"},{"no":266,"lesson":"第6课","stem":"“Agent不是更聪明的聊天机器人，而是数字员工”，衡量其价值应看","options":["它说得是否漂亮","参数数量多少","是否免费","能否稳定地交付正确的成果"],"answer":"D"},{"no":267,"lesson":"第6课","stem":"Agent架构中，负责“拆解任务的工作方法”的是","options":["规划（Planning）","记忆（Memory）","工具使用（Tool Use）","大模型（LLM）"],"answer":"A"},{"no":268,"lesson":"第6课","stem":"Agent的短期记忆保存的是","options":["用户的长期偏好","当前任务的上下文","历史所有对话","外部存储文件"],"answer":"B"},{"no":269,"lesson":"第6课","stem":"“技能（Skill）”沉淀的作用是","options":["技能沉淀只对当前这一次任务有作用","把做法沉淀下来对任务没有任何帮助","沉淀验证做法同类任务下次可直接复用","技能沉淀只是长期记忆的一个组成部分"],"answer":"C"},{"no":270,"lesson":"第6课","stem":"下列属于连接器（Connector）作用对象的是","options":["连接器只能作用于搜索引擎这一类工具","连接器的作用对象仅局限于代码执行","连接器只负责读写本地计算机中的文件","连接器对接问卷文档邮箱会议外部应用"],"answer":"D"},{"no":271,"lesson":"第6课","stem":"自动化“设置一次、长期生效”的典型例子是","options":["每天早上推荐5个英语单词","一次性查询天气","单次对话","手动重复操作"],"answer":"A"},{"no":272,"lesson":"第6课","stem":"关于MCP在2026年的普及情况，正确的是","options":["MCP推出以来几乎没有什么安装量","MCP安装量上亿接入服务器过万并捐赠","MCP目前只有谷歌一家公司在使用","MCP这项技术到2026年已经完全过时"],"answer":"B"},{"no":273,"lesson":"第6课","stem":"MCP被称为“AI的USB-C接口”，其含义是","options":["MCP接口在一次连接之后只能挂载单一设备","MCP标准统一之后各类接口彼此仍不可通用","工具按统一标准接入各智能体即可直接调用","MCP作为接口它与标准化之间并无任何关系"],"answer":"C"},{"no":274,"lesson":"第6课","stem":"项目容器“从源头减少幻觉”的机制是","options":["项目容器运行时并不向AI提供任何资料","项目容器让AI随机地生成全新的内容","项目容器本身并没有减少幻觉的机制","AI基于项目资产库资料生成以减少幻觉"],"answer":"D"},{"no":275,"lesson":"第6课","stem":"Agent的权限风险需要特别重视，是因为","options":["智能体在设计上根本不能操控外部应用","能操控外部应用的智能体误操作代价更大","具备行动能力的智能体在使用中永不出错","智能体所拥有的权限与实际风险毫无关系"],"answer":"B"},{"no":276,"lesson":"第7课","stem":"AI偏见四大来源中，“落地后果”对应的是","options":["使用偏见即技术在落地场景中带来不公","数据偏见指的是训练集自带的历史偏见","反馈循环指AI输出反过来成为新训练数据","算法偏见指目标函数与特征选择放大歧视"],"answer":"A"},{"no":277,"lesson":"第7课","stem":"“短视频推荐算法不断推送同类内容，加剧信息茧房”属于","options":["该现象属于训练数据自带的数据偏见","该现象属反馈循环偏见在循环中不断强化","该现象属于目标函数设计导致的算法偏见","该现象属于产品落地场景带来的使用偏见"],"answer":"B"},{"no":278,"lesson":"第7课","stem":"面对AI偏见，作为使用者应","options":["遇到重大决策时可以直接采信AI的输出","使用中发现AI出了问题也不必向上反馈","重大决策不直接采信AI应交叉验证并反馈","为避免偏见应把所有AI工具全部卸载删除"],"answer":"C"},{"no":279,"lesson":"第7课","stem":"“我只是普通人，没什么隐私”这一观点错在","options":["普通人的身份确实不存在任何个人隐私","日常生活中普通人根本不会涉及任何隐私","在大数据时代普通人的隐私并不重要","个人信息生物特征浏览习惯都有较高风险"],"answer":"D"},{"no":280,"lesson":"第7课","stem":"“从购物记录推断疾病、从社交动态推断收入”属于五大隐私风险中的","options":["隐私推断攻击","平台数据泄露","对话内容用于模型训练","生物特征数据泄露"],"answer":"A"},{"no":281,"lesson":"第7课","stem":"在AI工具设置页关闭“使用我的对话数据训练模型”开关，属于六条实操法则中的","options":["不输入敏感信息","关闭训练数据采集开关","数据脱敏","定期清理会话历史"],"answer":"B"},{"no":282,"lesson":"第7课","stem":"2025年全国AI诈骗案件中，属于重点受害群体的是","options":["老年人","幼儿","大学生、职场新人","退休干部"],"answer":"C"},{"no":283,"lesson":"第7课","stem":"AI换脸视频诈骗的典型场景是","options":["骗子通过群发短信中的链接诱导点击","骗子直接拨打普通电话来实施电信诈骗","骗子向用户邮箱发送带有病毒的钓鱼邮件","骗子冒充老板熟人在会议中要求财务转账"],"answer":"D"},{"no":284,"lesson":"第7课","stem":"防范AI诈骗“使用官方渠道”指的是","options":["办业务走官方APP官网不点击不明链接","收到陌生短信后应随意点击其中的链接","对陌生来电所说的业务内容应当全盘相信","一旦对方索要验证码就应当立即告知对方"],"answer":"A"},{"no":285,"lesson":"第7课","stem":"《个人信息保护法》的核心原则是","options":["可以随意收集用户的个人信息","遵循告知同意、最小必要等原则","处理信息无需取得本人同意","可以无限制地收集所有信息"],"answer":"B"},{"no":286,"lesson":"第7课","stem":"《生成式人工智能服务管理暂行办法》规定生成内容要","options":["服务提供者可以任意自由生成各类信息内容","模型生成出来的内容完全不需要做任何标识","不得生成违法信息按规定标识防止歧视虚假","暂行办法只要求对生成图片做必要标识"],"answer":"C"},{"no":287,"lesson":"第7课","stem":"发现个人信息被违法处理，正确的维权途径是","options":["个人信息被侵权时只能选择忍气吞声","面对信息侵权目前并没有任何维权途径","信息被违法处理时只能靠自己私下解决","可向网信部门举报也可向人民法院起诉"],"answer":"D"},{"no":288,"lesson":"第7课","stem":"“AI越强大，使用者越需要清醒”，四个核心判断不包括","options":["AI并不客观","隐私保护始于输入","可以无条件信任AI","AI诈骗防护核心是二次验证、AI内容需要溯源"],"answer":"C"},{"no":289,"lesson":"第8课","stem":"医疗健康中“AI根据症状、病史、检查结果给出诊断建议”属于","options":["辅助诊断","医学影像分析","药物研发","健康管理"],"answer":"A"},{"no":290,"lesson":"第8课","stem":"教育培训中“AI口语陪练、发音纠正”属于","options":["智能备课","语言学习","AI助教","特殊教育"],"answer":"B"},{"no":291,"lesson":"第8课","stem":"工业制造中“AI视觉检测产品缺陷”属于","options":["预测性维护","智能排产","质量检测","数字孪生"],"answer":"C"},{"no":292,"lesson":"第8课","stem":"金融服务中“AI评估信用风险、欺诈风险、市场风险”属于","options":["智能客服","算法交易","反欺诈","风险评估"],"answer":"D"},{"no":293,"lesson":"第8课","stem":"法律行业中“AI快速审查合同条款、识别风险点”属于","options":["合同审查","合规审查","法律咨询","案例检索"],"answer":"A"},{"no":294,"lesson":"第8课","stem":"下列更容易被AI替代的岗位是","options":["需要深度共情能力的心理咨询师岗位","数据录入简单客服流水线质检基础翻译","需要复杂临场判断的外科医生这类岗位","负责企业战略方向决策的高层管理岗位"],"answer":"B"},{"no":295,"lesson":"第8课","stem":"岗位变革的典型例子是","options":["岗位变革的最终结果是该岗位彻底消失","岗位变革意味着整个岗位被AI完全替代","医生从看片诊断转为审核AI诊断加沟通","经历岗位变革之后其工作内容毫无变化"],"answer":"C"},{"no":296,"lesson":"第8课","stem":"未来的职场竞争，很大程度上是","options":["体力的竞争","工作时长的竞争","设备的竞争","“人机协作能力”的竞争"],"answer":"D"},{"no":297,"lesson":"第8课","stem":"未来方向“多模态融合”指的是","options":["AI融合图文音视频多模态如人般感知","未来的AI仍将只处理纯文本类信息","未来AI的处理对象仍然只局限于图片","AI发展将始终保持单一信息模态不变"],"answer":"A"},{"no":298,"lesson":"第8课","stem":"“端侧AI”带来的好处是","options":["响应更慢","响应更快、隐私更好","隐私更差","必须时刻联网"],"answer":"B"},{"no":299,"lesson":"第8课","stem":"文科类专业（中文、新闻、法律、教育等）的AI侧重点是","options":["文科类专业的AI学习主要偏重科研深度","文科类专业应重点培养数据分析能力","文科以工具为主核心在写作思辨沟通创意","文科类专业需要深入学习底层AI技术"],"answer":"C"},{"no":300,"lesson":"第8课","stem":"关于“AI操作能力会贬值”，正确的理解是","options":["AI操作能力一旦学会就永远不会贬值","AI操作能力随着学习深入会越来越难","AI操作能力在工作中完全不需要去学习","AI操作易学随工具普及贬值但仍是门槛"],"answer":"D"},{"no":301,"lesson":"实验1","stem":"传统搜索引擎的工作原理是","options":["依靠大模型直接生成结构化答案并附解释说明","自动为回答附可点击的来源引用及出处链接","能自主规划任务并连续执行多步操作直至交付","按关键词匹配返回链接列表，由用户自行筛选判断"],"answer":"D"},{"no":302,"lesson":"实验1","stem":"AI搜索的工作方式是","options":["在网页检索基础上由大模型归纳总结并附来源引用","只返回链接列表，不做任何归纳总结","不做网页检索，仅凭内部知识直接生成","只返回相关关键词，不生成答案内容"],"answer":"A"},{"no":303,"lesson":"实验1","stem":"通用AI大模型获取信息的方式是","options":["实时检索互联网并返回最新网页链接列表","基于训练知识直接生成答案，无需实时检索、通常不附来源","关键词匹配返回链接列表，由用户自行浏览","查询本地数据库并返回匹配记录"],"answer":"B"},{"no":304,"lesson":"实验1","stem":"关于三种信息获取方式的弊病，下列说法正确的是","options":["三种方式各有优势，输出基本不会偏差","只有大模型会出错，另两种都准确可靠","传统搜索需自行整合，AI搜索可能出错，大模型有幻觉","三者输出都可直接采信，无需核验"],"answer":"C"},{"no":305,"lesson":"实验1","stem":"关于“AI输出需核验”的理解，正确的是","options":["AI内容天然准确，可放心全部采信","AI可能出现与事实不符的幻觉，输出仍需人工核验","核验AI输出纯属浪费时间，不如直接采用","只有大模型需要核验，AI搜索与智能体无需检查"],"answer":"B"},{"no":306,"lesson":"实验1","stem":"通用AI大模型出现“幻觉”是指","options":["程序突然死机崩溃，系统无法运行","模型无法联网，不能调用外部信息","模型生成与事实不符、看似真实却错误的内容","模型拒绝回答所有提问"],"answer":"C"},{"no":307,"lesson":"实验2","stem":"监督学习图像分类中，我们给AI提供图片并告诉它每张图片属于哪一类，这称为","options":["模型，指最终用于预测的整套算法系统","准确率，指预测结果与答案吻合的程度","过拟合，指模型只记住训练图片的现象","标签，即告诉模型每张图片所属的类别"],"answer":"D"},{"no":308,"lesson":"实验2","stem":"预测概率代表的是","options":["图片像素尺寸大小，越大越清晰","图片分辨率高低，反映成像清晰度","图片属于各类的可能性，最高者即预测类别","图片拍摄时间，反映照片新旧"],"answer":"C"},{"no":309,"lesson":"实验2","stem":"对照实验“控制变量法”要求三组实验只改变什么","options":["只改变模型结构，用不同层数网络","只改变训练参数，如学习率、轮数、初始权重","只改变分类主题，识别不同种类物体","只改变训练数据量，每类用十、二十、三十张"],"answer":"D"},{"no":310,"lesson":"实验2","stem":"数据量少时（如10张/类）出现“训练集准确率很高但验证集/新图效果差”，这种现象称为","options":["欠拟合，模型连训练集都无法识别","收敛，模型训练趋于稳定","归一化，对像素数值做缩放处理","过拟合，模型背下训练图片而非学会规律"],"answer":"D"},{"no":311,"lesson":"实验2","stem":"准确率很低（低于60%）的可能原因不包括","options":["图片标注错误，标签与内容不符导致误学","两类图片过于相似，且每类样本数据量不足","图片质量差、画面模糊，特征难以提取","显示器分辨率，它并不影响模型判断"],"answer":"D"},{"no":312,"lesson":"实验3","stem":"计算机视觉是让计算机","options":["听懂语音，实现语音识别与转写","编写文字，自动生成文章与文档","进行数值计算，完成科学运算任务","看懂图像，理解画面中的内容"],"answer":"D"},{"no":313,"lesson":"实验3","stem":"一张图片在计算机中是一个","options":["数字矩阵，每个像素由若干数字表示","文本文件，存储为一串字符","音频文件，由波形采样数据构成","视频流，由连续动态帧序列组成"],"answer":"A"},{"no":314,"lesson":"实验3","stem":"AI通过多层神经网络逐步提取特征，其顺序是","options":["整体、特征、边缘，最后到像素","像素、边缘、特征，最后合成整体","特征、像素、整体，最后到边缘","边缘、像素、整体，最后到特征"],"answer":"B"},{"no":315,"lesson":"实验3","stem":"AI识图中层识别的是","options":["边缘与颜色，处理最原始的像素信息","做整体判断，直接给出整张图的类别","识别文字，将字符逐字提取出来","纹理与局部形状，如斑点和轮廓细节"],"answer":"D"},{"no":316,"lesson":"实验3","stem":"“判断整张图片是什么类别（这是猫）”属于计算机视觉的哪项任务","options":["框出物体位置并识别类别，称为目标检测","判断整张图属于什么类别，称为图像分类","精确勾勒物体像素轮廓，称为图像分割","提升画质或修复破损内容，称为图像增强修复"],"answer":"B"},{"no":317,"lesson":"实验3","stem":"“找到物体在哪里并判断是什么（用框标出这是猫在左边）”属于","options":["只判断整张图属于哪一类，称为图像分类","精确到像素勾勒轮廓，称为图像分割","框出物体位置并识别类别，称为目标检测","修复模糊去除多余物体，称为图像增强"],"answer":"C"},{"no":318,"lesson":"实验3","stem":"“精确到像素级别的边界划分（精确勾勒猫的轮廓）”属于","options":["只判断整张图属于哪一类，称为图像分类","框出物体位置并判断类别，称为目标检测","提升画质修复老照片，称为图像修复","精确到像素勾勒轮廓边界，称为图像分割"],"answer":"D"},{"no":319,"lesson":"实验3","stem":"“提升图片质量或修复内容（去模糊、老照片修复、去物体）”属于","options":["去模糊、修复老照片或移除多余物体，称为图像增强与修复","判断整张图属于哪一类，称为图像分类","框出物体位置并识别类别，称为目标检测","精确到像素勾勒轮廓，称为图像分割"],"answer":"A"},{"no":320,"lesson":"实验3","stem":"2026年的文生图工具已经非常逼真，但AI生成图片仍存在的常见破绽不包括","options":["人物细节出错，如手指数量异常、牙齿崩坏","生成画面完全真实可信，找不出破绽","光影不一致，阴影方向与光源矛盾","招牌文字乱码扭曲，出现无法辨认的符号"],"answer":"B"},{"no":321,"lesson":"实验3","stem":"防伪判断依据可以从哪些方面找","options":["只看文件大小，体积越大越真实","只看颜色，色彩鲜艳就真实","从人物细节、光影、文字、背景与物理规律判断","只看边框，边框规整就真实"],"answer":"C"},{"no":322,"lesson":"实验4","stem":"AI文本生成是大语言模型基于什么，按照概率预测接续生成文字","options":["基于海量学习数据，按概率预测接续生成文字","基于数据库查询，检索并返回预存答案","基于人工规则，逐条套用语法拼接文字","基于实时网页，联网抓取最新网页生成"],"answer":"A"},{"no":323,"lesson":"实验4","stem":"大模型并不真正“理解”语义，会出现什么","options":["仍能精确计算复杂数学算式","会产生幻觉，编造不存在的数据与文献","引用的文献都真实可靠可查证","推理逻辑完美无缺、前后不矛盾"],"answer":"B"},{"no":324,"lesson":"实验4","stem":"AI文本质量校验是指","options":["由AI自我检查，自动发现并改正潜在错误","电脑杀毒，扫描隐藏的病毒木马","人工核查AI输出，甄别事实错误、逻辑矛盾、空洞表述与幻觉编造","网络测速，检测带宽与页面加载速度"],"answer":"C"},{"no":325,"lesson":"实验4","stem":"结构化提示词遵循的四要素C-B-I-O是","options":["颜色、边框、图标与排版","内容、背景、输入与输出","角色、行为、输入与输出","角色、背景、指令与输出格式"],"answer":"D"},{"no":326,"lesson":"实验4","stem":"人工逐段核查生成文本时，需要重点排查的问题类型不包括","options":["事实错误，如编造数据、不存在的研究或错误时间","逻辑漏洞，如前后矛盾或推理不成立","空话套话、AI幻觉与表述不清等质量问题","字体大小设置，它不属于内容质量问题"],"answer":"D"},{"no":327,"lesson":"实验4","stem":"“编造引用、案例、统计数字”属于哪类问题","options":["AI幻觉","逻辑漏洞","空话套话","表述问题"],"answer":"A"},{"no":328,"lesson":"实验4","stem":"“输出内容是否贴合任务需求”对应五维度中的","options":["成稿各部分是否齐全、层次是否分明","行文是否具备具体细节而非空泛套话","文体语气是否与预期风格相符","成稿是否切题、内容是否贴合任务需求"],"answer":"D"},{"no":329,"lesson":"实验4","stem":"提示词对照实验应尽量选择什么难度的任务","options":["越简单越好，一两句话能完成的","难度随意，难易差别都能看出","专挑最难的任务，越难越能体现水平","复杂度中等以上，过简单短句难显差距"],"answer":"D"},{"no":330,"lesson":"实验4","stem":"设定角色提升专业度、补充背景信息让内容贴合场景、明确格式要求让结构清晰，这些属于","options":["工程上不可行，无法落地使用","可反复套用的提示词优化实用技巧","典型错误示范，会让输出更混乱","纯属浪费时间，对成稿无帮助"],"answer":"B"},{"no":331,"lesson":"实验5","stem":"全模态AIGC是基于什么分别生成图像、视频、语音、数字人等内容的","options":["依据预存数据库记录逐条调取现成素材","由画师人工手绘后再扫描输入电脑","依据用户输入的提示词文本分别生成各模态内容","对现成视频录像剪辑拼接后重新输出"],"answer":"C"},{"no":332,"lesson":"实验5","stem":"提示词描述的完整度、结构化程度直接决定","options":["运行时电脑的运算速度与画面帧率","生成时占用的网络带宽与传输速率","程序运行占用的内存容量上限","最终生成内容的质量与是否贴合创作设想"],"answer":"D"},{"no":333,"lesson":"实验5","stem":"全模态AIGC四大任务不包括","options":["人脸识别，它属于身份核验、不在四大创作之列","文生图，由文本提示词生成静态图片","文生视频，由文本描述生成动态短视频","AI语音合成与数字人播报"],"answer":"A"},{"no":334,"lesson":"实验5","stem":"撰写高质量提示词的六大核心要素是","options":["排版装饰，如颜色字体边框图标间距","画面构成，如主体场景光影风格画质构图","文稿写作，如字数篇幅格式排版字体","对话组织，如角色背景指令输出示例字数"],"answer":"B"},{"no":335,"lesson":"实验5","stem":"劣质简短提示词的特点和问题是","options":["描述十分详尽，对画面约束充分全面","输出完全可控，每处细节都能精确掌控","描述信息偏少，AI自由发挥空间大、输出随机性强","生成结果高度确定，每次重绘都一致"],"answer":"C"},{"no":336,"lesson":"实验5","stem":"结构化优质提示词包含多维度信息，作用是","options":["让AI有更大发挥余地，随意创作不受限","让输出更随机多变，每次结果差异明显","对生成过程实际上起不到作用","约束AI发挥，使结果更贴近创作者原始设想"],"answer":"D"},{"no":337,"lesson":"实验5","stem":"关于全模态AIGC各模态的成熟度，下列说法正确的是","options":["文生图相对成熟，画面效果较稳定可用","文生视频最成熟，人物动作细节无可挑剔","数字人最成熟，口型表情完全自然","各模态发展一致，成熟度无差别"],"answer":"A"},{"no":338,"lesson":"实验5","stem":"当前文生视频容易出现的问题是","options":["画面完美无瑕，没有任何可见缺陷","易出现物体变形、动作闪烁与细节崩坏","成品无缺陷，质量达实拍电影水准","画面与文生图完全相同，没有新问题"],"answer":"B"},{"no":339,"lesson":"实验5","stem":"AI语音、数字人虽能快速产出，但在什么方面仍存在缺陷","options":["生成速度仍明显偏慢，难以快速产出","画面画质仍较模糊，达不到高清","情感表达与口型精准匹配方面仍有明显缺陷","画面构图仍不合理，镜头缺乏美感"],"answer":"C"},{"no":340,"lesson":"实验5","stem":"使用AIGC内容时需要关注版权风险，所有AI生成内容应当","options":["直接标注为用户原创，享受完整著作权","无需标注，可当普通内容自由使用","从平台彻底删除，不得对外发布","主动标注为AI生成，履行版权与透明义务"],"answer":"D"},{"no":341,"lesson":"实验5","stem":"对比两张生成图片从哪六个维度分析","options":["响应速度、计费、字体颜色等外观角度","字数篇幅、段落排版、配色美观等版式角度","模型准确率、召回率、耗时与内存占用","主体场景光影风格画质构图等六方面"],"answer":"D"},{"no":342,"lesson":"实验5","stem":"关于“画面好看”与“符合创作预期”，正确的理解是","options":["劣质提示词也可能出美观图，但内容易偏离设想","画面好看与符合创作预期完全是同一回事","优质提示词的结果反而一定难看","劣质提示词生成的图一定难看"],"answer":"A"},{"no":343,"lesson":"实验5","stem":"文生视频提示词应尽量","options":["只写静态画面，动作细节不必交代","通篇不写动作，只交代场景与氛围","多写动态动作描述，减少细碎静态描述","只交代颜色，光影动作细节不必写入"],"answer":"C"},{"no":344,"lesson":"实验5","stem":"数字人相对真人的常见缺陷是","options":["生成速度比真人快，短时间产出成片","口型与语音错位、面部表情僵硬","面部表情生动自然，与真人几乎无差别","口型与语音精准同步，没有错位"],"answer":"B"},{"no":345,"lesson":"实验5","stem":"全模态AIGC优劣势总结从哪五个维度进行","options":["内容独特性、情感温度、产出效率、准确性与版权风险","响应速度、计费、字体颜色画面大小等运营角度","字数篇幅、段落排版、配色美观等版式角度","模型准确率、召回率、耗时成本与内存占用"],"answer":"A"},{"no":346,"lesson":"实验5","stem":"“AI能否产出真正原创创意”对应AIGC优劣势总结中的","options":["情感温度，即内容能否打动人","内容独特性，即能否产出原创创意","产出效率，即内容产出快不快","版权风险，即对外使用是否合规"],"answer":"B"},{"no":347,"lesson":"实验6","stem":"AI Agent与普通聊天AI的本质区别是","options":["聊天AI与AI Agent没有任何区别，只是叫法不同","聊天AI比Agent更能做事，能直接动手完成任务","AI Agent完全不会对话，只能默默执行指令","聊天AI只给文字建议，Agent能调用工具交付成果"],"answer":"D"},{"no":348,"lesson":"实验6","stem":"AI Agent（智能体）是能够自主理解目标、调用工具、执行多步操作并交付成果的智能系统，其核心特征是","options":["能实际打开应用、读取文件并生成可用文档成果","只能输出文字，无法对外部系统操作","不能调用外部工具，只能纯文本对话","只能单轮问答，无法连续多步任务"],"answer":"A"},{"no":349,"lesson":"实验6","stem":"Agent能力存在的层次差异是","options":["只有单一一种，不存在层次之分","由低到高分为纯对话、工具调用、桌面操作与垂直专用","只有纯对话与工具调用两个层次","边界模糊混乱，无法划分清晰层次"],"answer":"B"},{"no":350,"lesson":"实验6","stem":"建立用户档案（长期记忆）的作用是","options":["对AI作答实际上起不到作用","只在第一次任务保存一次，之后不再用","收集并定期删除用户个人信息","让AI结合用户专业课程与目标作答，更贴合需求"],"answer":"D"},{"no":351,"lesson":"实验6","stem":"技能（Skill）是指","options":["垂直领域里承担特定任务的专业角色身份","连接AI与外部应用的数据传输通道","把已验证方法沉淀为可复用手艺，同类任务直接调用","系统按周期自动触发的定时任务"],"answer":"C"},{"no":352,"lesson":"实验6","stem":"专家（Expert）是指","options":["已验证工作方法沉淀成的可复用手艺","连接AI与外部应用的数据传输通道","系统按固定周期自动触发的任务","某领域专业角色，如数据处理或全栈开发"],"answer":"D"},{"no":353,"lesson":"实验6","stem":"连接器（Connector）是指","options":["AI与外部应用间的通道，如问卷、文档、邮箱","承担特定任务的领域专业角色身份","成熟工作方法沉淀成的可复用手艺","保存用户长期背景信息的个人档案库"],"answer":"A"},{"no":354,"lesson":"实验6","stem":"项目（Project）容器是指","options":["电脑里普通存放文件的文件夹目录","记录用户长期偏好的个人档案","把相关任务规则资料打包的协作容器","连接AI与外部应用的数据通道"],"answer":"C"},{"no":355,"lesson":"实验7","stem":"AI大模型是基于什么训练而来","options":["由人工逐条编写的规则库与专家知识条目","在海量互联网公开语料数据上训练而成","依赖数据库中的结构化记录精确查询","通过现场采访和问卷调查采集一手资料"],"answer":"B"},{"no":356,"lesson":"实验7","stem":"训练数据中自带的社会刻板印象会被模型继承，表现为","options":["严格训练后输出完全不带偏见","偏见只以文本回答出现，不涉及图像","同时表现为文本偏见与文生图图像偏见","偏见只存在于文生图，文本回答完全中立"],"answer":"C"},{"no":357,"lesson":"实验7","stem":"AI文本偏见的表现是","options":["任何问题的回答都绝对中立客观","只出现在图像生成结果中，与文字无关","不携带任何固化认知，回答不带偏见","回答职业能力问题时输出固化的性别、身份、出身刻板认知"],"answer":"D"},{"no":358,"lesson":"实验7","stem":"AI图像偏见的表现是","options":["文生图生成职业人物时在性别、肤色、形象上出现固化画像","每张图片都完全客观中立，不带个人偏好","只体现在文字回答中，与画面无关","生成图像时不携带任何人物刻板印象"],"answer":"A"},{"no":359,"lesson":"实验7","stem":"公有AI服务在使用过程中会收集用户的","options":["扫描并上传硬盘里全部私人文件","收集用户输入的对话内容及主动上传的资料","对屏幕实时录像并回传服务器存档","记录账号密码以便后续自动登录"],"answer":"B"},{"no":360,"lesson":"实验7","stem":"部分产品会将用户对话数据用于","options":["删除违规用户账号并永久封禁","加密存储对话内容以防他人访问","用于后续版本的模型迭代训练以提升回答质量","自动判定并封禁被怀疑的用户"],"answer":"C"},{"no":361,"lesson":"实验7","stem":"隐私脱敏是指在保留原有业务含义的前提下","options":["移除、替换、模糊身份标识与涉密信息","把全部个人信息一律删干净再交给AI","对所有文字统一加密后再上传","只保留真实姓名，删除其余业务内容"],"answer":"A"},{"no":362,"lesson":"实验7","stem":"脱敏四步法包括","options":["删除、新增、修改与查询四类操作","删除标识、数值泛化、替换ID与保留业务信息","加密、解密、压缩与传输四个步骤","收集、清洗、标注、训练的标准流程"],"answer":"B"},{"no":363,"lesson":"实验7","stem":"单条输出不一定体现偏见，因此判断应","options":["综合多组提示词与多次生成结果整体判断","仅凭单条输出即可断定有无偏见","只看一次回答就下结论，无需重复实验","凭主观印象随意判断"],"answer":"A"},{"no":364,"lesson":"实验7","stem":"关于脱敏的意义，下列说法正确的是","options":["对文本安全无意义，纯属多余步骤","脱敏后文本可安全交给AI处理且保留业务含义","会破坏文本中一切信息使其无法使用","只是走形式，对数据安全无帮助"],"answer":"B"},{"no":365,"lesson":"实验7","stem":"若免费版本没有关闭“允许使用我的数据用于模型训练”的开关，代表","options":["用免费版对话就一定完全安全","开启开关后对话不会被用于任何用途","上传的对话会被自动删除不留记录","对话内容存在被用于模型训练的可能"],"answer":"D"},{"no":366,"lesson":"实验7","stem":"关于AI偏见，正确的认知是","options":["精心调参可把偏见完全消除","当前大模型输出已完全不带偏见","偏见难以完全消除，应学会辨别输出中的刻板印象","偏见无关紧要，使用时无需留意"],"answer":"C"},{"no":367,"lesson":"实验7","stem":"个人信息保护，应树立的数据安全意识是","options":["清楚哪些是敏感内容不能输入公有大模型","任何信息都可放心输入公有大模型","只保护工资等财产信息，其余可上传","只保护真实姓名，其余个人信息可公开"],"answer":"A"},{"no":368,"lesson":"实验7","stem":"处理敏感文本的正确顺序是","options":["不做处理直接提交给AI","先在本地完成脱敏改写，再交给AI处理","先提交给AI，之后再补做脱敏","全程不脱敏直接上传"],"answer":"B"},{"no":369,"lesson":"实验8","stem":"思辨本专业使用AI存在的局限与风险时，考虑的维度是","options":["仅从生成速度、价格、字体颜色等外观角度考虑","仅从字数篇幅与排版是否美观协调考虑","涵盖技术局限、伦理、就业、质量与依赖五类风险","仅从准确率、召回率与耗时等性能指标考虑"],"answer":"C"},{"no":370,"lesson":"实验8","stem":"每个能力提升目标要包含","options":["包含描述、路径、时间节点与衡量标准","只需写出目标名称即可","只需写明预计完成的时间节点","只需给出可衡量的判断标准"],"answer":"A"},{"no":371,"lesson":"其他","stem":"生成式AI（AIGC）主要依赖于哪种技术来生成内容？","options":["传统机器学习","生成对抗网络（GANs）","决策树","支持向量机（SVM）"],"answer":"B"},{"no":372,"lesson":"其他","stem":"大语言模型（LLMs）主要基于哪种深度学习架构？","options":["循环神经网络（RNN）","长短时记忆网络（LSTM）","Transformer","支持向量机（SVM）"],"answer":"C"},{"no":373,"lesson":"其他","stem":"提示词创作的核心任务是什么？","options":["提高AI的计算能力","深刻理解基本概念并编写适当的提示词","增加AI的运行速度","开发新的AI模型"],"answer":"B"},{"no":374,"lesson":"其他","stem":"在提示词创作中，哪项技巧有助于AI更准确地理解用户意图？","options":["提供模糊的上下文","使用复杂的术语","编写简洁具体的提示词","增加不相关信息"],"answer":"C"},{"no":375,"lesson":"其他","stem":"提示词优化任务的核心目标不包括哪项内容？","options":["提高内容的逻辑连贯性","增加任务的复杂性","精化提示词以提升内容相关性","运用高效的提示词万能公式"],"answer":"B"},{"no":376,"lesson":"其他","stem":"在提示词万能公式GROW中，\"R\"代表什么？","options":["结果","角色","前进方式","目标"],"answer":"B"},{"no":377,"lesson":"其他","stem":"以下哪个要素不属于提示词的构成部分？","options":["上下文","输出指示","随机数据","输入数据"],"answer":"C"},{"no":378,"lesson":"其他","stem":"提示词设计中最重要的三个特性是什么？","options":["冗长、复杂、模糊","精炼、明确、引导性","随意、简陋、消极","明确、冗长、复杂"],"answer":"B"},{"no":379,"lesson":"其他","stem":"在处理复杂问题时，建议采用什么策略？","options":["直接解决大问题","从简单提问分解复杂问题","不需要分解，整体解决","避免使用任何问题"],"answer":"B"},{"no":380,"lesson":"其他","stem":"机器学习与深度学习的关系是怎样的？","options":["两者没有联系","深度学习是机器学习的一个分支","机器学习是深度学习的一个子领域","两者是完全独立的领域"],"answer":"B"},{"no":381,"lesson":"其他","stem":"提示词的哪个要素可以帮助减少模型对任务理解的歧义？","options":["输出指示","上下文","输入","反馈"],"answer":"B"},{"no":382,"lesson":"其他","stem":"AI辅助写作的主要作用不包括哪一项？","options":["提供灵感与创意","替代所有人类写作","提高写作效率","优化内容质量"],"answer":"B"},{"no":383,"lesson":"其他","stem":"以下哪项是AI辅助写作工具的基本功能？","options":["自动进行复杂的情感分析","生成标题和摘要","完全独立于人类写作","进行语音识别和翻译"],"answer":"B"},{"no":384,"lesson":"其他","stem":"AI辅助写作的主要目标是什么？","options":["提高写作速度","创作出满足使用者要求的文章","生成文学作品","直接替代人类写作"],"answer":"B"},{"no":385,"lesson":"其他","stem":"优化提示词的目的是为了什么？","options":["增加文案的字数","提升文案的细节和情感表达","让文案更简单易懂","减少用户的互动"],"answer":"B"},{"no":386,"lesson":"其他","stem":"生成式AI的商业机遇不包括以下哪一项？","options":["创新应用","市场增长","数据隐私","效率提升"],"answer":"C"},{"no":387,"lesson":"其他","stem":"下列哪项不属于AI在会议文档处理中的功能？","options":["智能要点提取","自动化行动项管理","智能模板推荐","综合总结报告"],"answer":"C"},{"no":388,"lesson":"其他","stem":"在AI辅助文档处理任务中，使用AIGC平台生成PPT报告的第一步是什么？","options":["查找并选择合适的PPT模板","提取会议纪要的关键内容并编排为Markdown格式","生成PPT文件并进行内容调整","导入PPT大纲并选择模板生成PPT"],"answer":"B"},{"no":389,"lesson":"其他","stem":"AI对话练习基于哪些技术来理解和生成自然语言，从而帮助学习者进行语言练习？","options":["自然语言处理和深度学习","机器学习和图像识别","自然语言处理和机器学习","语音识别和语法分析"],"answer":"C"},{"no":390,"lesson":"其他","stem":"智能语法检查工具主要利用以下哪项技术来进一步提高检测精度和建议质量？","options":["机器翻译","深度学习","数据挖掘","编程语言分析"],"answer":"B"},{"no":391,"lesson":"其他","stem":"下列哪个AI工具功能用于帮助学生纠正拼写和语法错误？","options":["文心一言","Word","Excel","PowerPoint"],"answer":"A"},{"no":392,"lesson":"其他","stem":"生成式AI面临的技术挑战之一是：","options":["数据质量和多样性","艺术创作的自由性","创意内容的传播速度","用户需求的满足"],"answer":"A"},{"no":393,"lesson":"其他","stem":"在生成式AI的技术挑战中，哪一项主要涉及到模型对情感和风格的控制能力？","options":["计算资源需求","数据质量与多样性","模型的可解释性与控制性","隐私保护"],"answer":"C"},{"no":394,"lesson":"其他","stem":"根据生成式AI的伦理挑战，下列哪一问题与版权归属相关？","options":["AI绘画风格控制","数据合成泄露风险","版权和归属问题","AI生成内容的情感表达"],"answer":"C"},{"no":395,"lesson":"其他","stem":"生成式AI对就业市场的影响包括：","options":["增加对创意岗位的需求","自动化岗位替代","创新技能的推广","削减技术岗位需求"],"answer":"B"},{"no":396,"lesson":"其他","stem":"生成式AI的核心技术通常包括以下哪项？","options":["计算机视觉","自然语言处理","语音识别","机器人控制"],"answer":"B"},{"no":397,"lesson":"其他","stem":"在生成式AI的应用中，哪项技术被广泛用于图像生成？","options":["语音合成","生成对抗网络（GANs）","强化学习","机器翻译"],"answer":"B"},{"no":398,"lesson":"其他","stem":"生成式AI在创意产业中最常见的应用是？","options":["自动驾驶","图像和音频内容生成","数据挖掘","信息安全"],"answer":"B"},{"no":399,"lesson":"其他","stem":"在生成式AI的训练过程中，哪种数据集类型最常用于文本生成模型的训练？","options":["标签数据集","图像数据集","文本数据集","视频数据集"],"answer":"C"},{"no":400,"lesson":"其他","stem":"生成式AI的“深度学习”模型中，哪项是主要的算法结构？","options":["线性回归","卷积神经网络（CNN）","生成对抗网络（GAN）","支持向量机（SVM）"],"answer":"C"}];
+var OPS = [{"title":"Windows基本操作","items":["在 C:\\KS 文件夹中新建文件夹A，在A文件夹下新建文件夹 a1，在 a1 下创建一个名为 MY.txt 的文本文件，文本内容为“欢迎来到上海师范大学”。","在C:\\KS文件夹中建立两个文件夹A1和A2。打开“计算器”应用，将该对话框窗口画面以文件名computer.jpg保存在A2文件夹中。","在 C:\\KS 文件夹中建立名为“画图”的快捷方式，该快捷方式指向系统文件夹中的应用程序 mspaint.exe，并设定其运行方式为最大化，快捷键为 Ctrl+Shift+W。"]},{"title":"文字操作","items":["打开C:\\KS\\WPS文字.docx文件，按下列要求操作，并将结果以原文件名保存在C:\\KS文件夹中。","将标题文字第一行设为艺术字，艺术字样式为样式“渐变填充-闪光深绿”,形状样式为预设样式蓝色“渐变填充-无线条-阴影”，文本效果为“转换-弯曲-双波形1”，如样张所示排于文中。","将标题文字第二行竖向排列于立方体形状内，字体为“楷体、小四、黄色”，立方体形状填充为“星空”纹理，立方体形状效果为“阴影-外部-向右偏移”，如样张所示进行图文混排。","设置正文各段落首行缩进2字符。将正文前四段中的“现实技术”替换成加粗倾斜、红色的“RT”。将正文中“感”和“感”后面的一个字符，共两字符替换为“绿色、加粗倾斜、下划线”的格式。","将第四段至文末分成带分隔线的两栏，栏1宽度20字符，间距3字符。如样张所示，给第四段至文末添加绿色2.25磅的段落边框。设置正文第三段首二字下沉2行，距正文0.2厘米，楷体。","设置正文第二段如样张所示的40%浅蓝色图案底纹，应用于文字。为文中最后三行添加如样张所示的深红色项目符号。插入形状“矩形标注”，并在该形状上添加如样张所示的公式。","插入图片tuD.jpg，设置色彩为“冲蚀”，衬于文字下方，按样张调整大小。插入图片tuE.jpg，调整尺寸为宽度3厘米，高度2厘米，“钢蓝，8pt发光，着色1”的发光效果，如样张混排于文中。按样张，添加页眉及页眉横线；页脚中间添加小四号页码。"]},{"title":"表格操作","items":["打开C:\\KS\\WPS表格.xlsx文件，参照样张，对Sheet1中的表格按以下要求操作，将结果以原文件名保存(注意：样张中的突出显示和计算结果并非实际计算结果，条件格式和计算必须用公式，否则不计分，其中“###.##”为提示要求保留的小数位数)。","设置标题“信息管理学院函授分部学生成绩表”的字体为楷体、加粗、20磅，设置B1:G1区域为黄色背景，A1和H1为蓝色细垂直条纹，标题在A1：H1区域跨列居中，文字分两行显示。删除C5单元格的批注。","将所有隐藏行取消隐藏。用公式计算每个学生的“总分”，“总分”＝“高等数学”+“英语”+“计算机”*“系数”（其中“系数”在J1单元格），保留一位小数。","用公式计算“奖学金”：英语成绩大于80且高等数学成绩大于高等数学平均分的，奖学金为“一等”，英语成绩大于70且高等数学成绩大于高等数学平均分的，奖学金为“二等”，其余为“无”（本题要求不能专门计算出平均分）。","参考样张，在E24计算“英语”平均分，保留两位小数。在B25计算总人数。在E25计算英语最高分，并在此单元格分数前加上文字“最高分”（不改变单元格的属性）。","利用条件格式设置姓名格式，有任一科目低于60分的姓名格式为加粗、倾斜、红色。A2:H25区域所有内容居中显示，套用蓝色“表样式4”表格样式，仅套用表样式，标题行的行数为1。","在Sheet1的I2开始的单元格中生成如样张所示的数据透视表，内容居中，自动设置“最适合的列宽”。","复制A2：F23区域的内容（仅数值）到A27开始的区域，对A27开始的区域数据生成如样张所示的分类汇总。","按样张在I9:L23区域生成如样张所示图表，图表类型为“组合图”：英语为“簇状柱形图”、高等数学为“折线图”，参考样张设置图表标题，坐标轴，数据标签等，背景“白-黄”渐变填充，边框圆角。"]},{"title":"演示操作","items":["打开C:\\KS\\WPS演示.pptx文件,按下列要求操作,将结果以原文件名保存在C:\\KS文件夹。","删除第一、二张幻灯片。将最后一张幻灯片的版式设置为“垂直排列标题与文本”，并将最后二张幻灯片依次移至最前面。","所有幻灯片背景格式设置为“横格纸纹”纹理填充。","如样张，将第一张幻灯片主体文本设置为“连续图片列表”SmartArt图形，更改颜色为“彩色”第一个，在文字上方插入图片coffee1.jpg至coffee5.jpg。对第三张幻灯片标题文字“咖啡豆种类”设置动作：鼠标移过时链接到第五张幻灯片。","在第一张幻灯片插入图片coffee9.jpg，设置单击第一张幻灯片的 SmartArt图形时，图片coffee9.jpg自底部飞入的动画效果（提示“触发器）。","将所有幻灯片设置为单击时向左“插入”切换，速度为1.5秒。","新建第六页幻灯片，设置版式为“两栏内容”，背景为“coffee9.jpg”图片填充，50%透明度，拉伸放置方式。左侧插入图片coffee8.jpg，设置“10磅柔化边缘”的图片效果。标题和文本内容来自文本文件coffeetree.txt，字体“隶书、浅蓝”，标题44号，正文20号。标题“咖啡树”超链接到第二张幻灯片，超链接颜色为“浅蓝”，已访问超链接颜色为“红”，链接无下划线。","如样张所示，为所有幻灯片添加编号和自动更新的日期，字体为微软雅黑，18号，红色。","新建自定义放映“MY”：按顺序放映第一至第三张幻灯片，并设置放映方式为自定义放映“MY”，循环放映，按ESC键终止。"]}];
+
+var QMAP = {};
+for (var i = 0; i < QUESTIONS.length; i++) { QMAP[QUESTIONS[i].no] = QUESTIONS[i]; }
+
+function lessonRank(l) {
+  var m = /^第(\d+)课$/.exec(l); if (m) return [0, +m[1], l];
+  m = /^实验(\d+)$/.exec(l);     if (m) return [1, +m[1], l];
+  return [2, 0, l];
+}
+var LESSONS = (function () {
+  var seen = {}, out = [];
+  for (var i = 0; i < QUESTIONS.length; i++) {
+    var l = QUESTIONS[i].lesson || "其他";
+    if (!seen[l]) { seen[l] = 0; out.push(l); }
+    seen[l]++;
+  }
+  out.sort(function (a, b) {
+    var ra = lessonRank(a), rb = lessonRank(b);
+    for (var k = 0; k < 3; k++) { if (ra[k] < rb[k]) return -1; if (ra[k] > rb[k]) return 1; }
+    return 0;
+  });
+  return out.map(function (l) { return { name: l, count: seen[l] }; });
+})();
+
+/* ==================== 状态 ==================== */
+var KEY = "shnu-cs-quiz-v1";
+var storageOK = true;
+function fresh() {
+  return { answered: {}, wrong: {}, fav: {}, seq: 0, exam: [], set: { autoNext: false, recite: false } };
+}
+function loadState() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) return fresh();
+    var s = JSON.parse(raw);
+    var f = fresh();
+    s.answered = s.answered || {}; s.wrong = s.wrong || {}; s.fav = s.fav || {};
+    s.exam = s.exam || []; s.seq = s.seq || 0;
+    s.set = s.set || {}; s.set.autoNext = !!s.set.autoNext; s.set.recite = !!s.set.recite;
+    return s;
+  } catch (e) { storageOK = false; return fresh(); }
+}
+var state = loadState();
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch (e) { storageOK = false; }
+}
+function resetAll() {
+  state = fresh(); save();
+}
+
+/* ==================== 工具 ==================== */
+function esc(s) {
+  return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function ltr(i) { return "ABCD"[i]; }
+function shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function keysOf(obj) { return Object.keys(obj).map(Number).filter(function (n) { return !!QMAP[n]; }); }
+function pct(a, b) { return b ? Math.round(a / b * 100) : 0; }
+function fmtDur(ms) {
+  var s = Math.max(0, Math.round(ms / 1000));
+  var m = Math.floor(s / 60); s = s % 60;
+  return m + "分" + (s < 10 ? "0" : "") + s + "秒";
+}
+function fmtClock(ms) {
+  var s = Math.max(0, Math.round(ms / 1000));
+  var m = Math.floor(s / 60); s = s % 60;
+  return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+}
+function today() {
+  var d = new Date();
+  return (d.getMonth() + 1) + "/" + d.getDate() + " " + (d.getHours() < 10 ? "0" : "") + d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes();
+}
+var toastTimer = null;
+function toast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.className = "show";
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.className = ""; }, 1500);
+}
+function stats() {
+  var done = 0, right = 0;
+  for (var k in state.answered) { if (state.answered.hasOwnProperty(k)) { done++; if (state.answered[k].ok) right++; } }
+  return {
+    done: done, right: right, total: QUESTIONS.length,
+    acc: pct(right, done),
+    wrong: keysOf(state.wrong).length,
+    fav: keysOf(state.fav).length,
+    cover: pct(done, QUESTIONS.length)
+  };
+}
+function lessonStat(name) {
+  var done = 0, right = 0, cnt = 0;
+  for (var i = 0; i < QUESTIONS.length; i++) {
+    var q = QUESTIONS[i];
+    if ((q.lesson || "其他") !== name) continue;
+    cnt++;
+    var a = state.answered[q.no];
+    if (a) { done++; if (a.ok) right++; }
+  }
+  return { cnt: cnt, done: done, right: right, acc: pct(right, done) };
+}
+
+/* ==================== 会话 ==================== */
+var view = "home";
+var S = null;          /* 当前练习/考试会话 */
+var timerId = null;
+
+function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+
+function startPractice(mode, title, list) {
+  if (!list.length) { toast("这里还没有题目"); return; }
+  S = { mode: mode, title: title, list: list, idx: 0, revealed: {}, picks: {}, start: Date.now() };
+  view = "practice";
+  window.scrollTo(0, 0);
+  render();
+}
+function resumeSeq() {
+  var list = QUESTIONS.map(function (q) { return q.no; });
+  startPractice("seq", "顺序练习", list);
+  var pos = Math.max(0, Math.min(state.seq || 0, list.length - 1));
+  S.idx = pos;
+  render();
+}
+function startExam(total, minutes, onlyWrong) {
+  var pool = onlyWrong ? keysOf(state.wrong) : QUESTIONS.map(function (q) { return q.no; });
+  if (pool.length < 4) { toast("题量不足，无法组卷"); return; }
+  var picked = shuffle(pool.slice()).slice(0, Math.min(total, pool.length));
+  S = {
+    mode: "exam", title: "模拟考试", list: picked, idx: 0, revealed: {}, picks: {},
+    start: Date.now(), limit: minutes * 60000, deadline: minutes > 0 ? Date.now() + minutes * 60000 : 0, sheet: false
+  };
+  view = "exam";
+  window.scrollTo(0, 0);
+  render();
+  if (minutes > 0) startTimer();
+}
+function startTimer() {
+  stopTimer();
+  timerId = setInterval(function () {
+    if (view !== "exam" || !S || !S.deadline) { stopTimer(); return; }
+    var left = S.deadline - Date.now();
+    var c = document.getElementById("clock");
+    if (left <= 0) { stopTimer(); toast("时间到，自动交卷"); submitExam(true); return; }
+    if (c) {
+      c.textContent = "剩余 " + fmtClock(left);
+      c.className = "clock" + (left < 60000 ? " danger" : "");
+    }
+  }, 500);
+}
+
+/* ==================== 答题 ==================== */
+function currentQ() { return S && S.list.length ? QMAP[S.list[S.idx]] : null; }
+
+function pick(i) {
+  var q = currentQ(); if (!q) return;
+  var key = q.no;
+  if (S.mode === "exam") {
+    S.picks[key] = i;
+    render();
+    return;
+  }
+  if (S.revealed[key] !== undefined) return;
+  S.revealed[key] = i;
+  var ok = ltr(i) === q.answer;
+  state.answered[key] = { p: i, ok: ok, t: Date.now() };
+  var fixed = false;
+  if (ok) { if (state.wrong[key]) { delete state.wrong[key]; fixed = true; } }
+  else { state.wrong[key] = 1; }
+  if (S.mode === "seq") state.seq = S.idx;
+  save();
+  render();
+  if (fixed) toast("答对了，已移出错题本");
+  if (state.set.autoNext && S.idx < S.list.length - 1) {
+    setTimeout(function () { if (view === "practice") nextQ(); }, ok ? 520 : 1200);
+  }
+}
+function nextQ() {
+  if (!S) return;
+  if (S.idx >= S.list.length - 1) {
+    if (S.mode === "exam") { toast("已经是最后一题，可以交卷了"); return; }
+    view = "done"; window.scrollTo(0, 0); render(); return;
+  }
+  S.idx++;
+  if (S.mode === "seq") { state.seq = S.idx; save(); }
+  window.scrollTo(0, 0); render();
+}
+function prevQ() {
+  if (!S) return;
+  if (S.idx <= 0) { toast("已经是第一题"); return; }
+  S.idx--;
+  if (S.mode === "seq") { state.seq = S.idx; save(); }
+  window.scrollTo(0, 0); render();
+}
+function jumpTo(i) {
+  if (!S || i < 0 || i >= S.list.length) return;
+  S.idx = i;
+  if (S.mode === "seq") { state.seq = i; save(); }
+  window.scrollTo(0, 0); render();
+}
+function toggleFav() {
+  var q = currentQ(); if (!q) return;
+  if (state.fav[q.no]) { delete state.fav[q.no]; toast("已取消收藏"); }
+  else { state.fav[q.no] = 1; toast("已收藏"); }
+  save(); render();
+}
+function submitExam(auto) {
+  stopTimer();
+  var right = 0, list = S.list, detail = [];
+  for (var i = 0; i < list.length; i++) {
+    var q = QMAP[list[i]];
+    var p = S.picks[list[i]];
+    var ok = (p !== undefined && ltr(p) === q.answer);
+    if (ok) right++;
+    else state.wrong[list[i]] = 1;
+    detail.push({ no: q.no, picked: p, ok: ok });
+  }
+  var score = Math.round(right / list.length * 100);
+  var rec = {
+    t: Date.now(), total: list.length, right: right, score: score,
+    used: Date.now() - S.start, auto: !!auto,
+    wrong: detail.filter(function (d) { return !d.ok; }).map(function (d) { return d.no; })
+  };
+  state.exam.unshift(rec);
+  if (state.exam.length > 30) state.exam.length = 30;
+  save();
+  S.detail = detail; S.result = rec;
+  view = "result";
+  window.scrollTo(0, 0);
+  render();
+}
+
+/* ==================== 渲染 ==================== */
+var app = document.getElementById("app");
+var topbar = document.getElementById("topbar");
+var tabs = document.getElementById("tabs");
+
+var TABS = [
+  { id: "home", ic: "🏠", label: "首页" },
+  { id: "wrong", ic: "❌", label: "错题本" },
+  { id: "fav", ic: "⭐", label: "收藏" },
+  { id: "stats", ic: "📊", label: "统计" },
+  { id: "ops", ic: "📝", label: "操作题" }
+];
+function renderTabs() {
+  var cur = view;
+  if (cur === "practice" || cur === "exam" || cur === "done" || cur === "result" || cur === "lessons") cur = "home";
+  tabs.innerHTML = TABS.map(function (t) {
+    var n = 0;
+    if (t.id === "wrong") n = keysOf(state.wrong).length;
+    if (t.id === "fav") n = keysOf(state.fav).length;
+    var badge = n ? '<span style="font-size:10px">(' + n + ')</span>' : "";
+    return '<button data-tab="' + t.id + '" class="' + (cur === t.id ? "on" : "") + '">' +
+      '<span class="ic">' + t.ic + '</span><span>' + t.label + badge + '</span></button>';
+  }).join("");
+}
+function setTop(opts) {
+  if (!opts) { topbar.style.display = "none"; topbar.innerHTML = ""; return; }
+  topbar.style.display = "";
+  topbar.innerHTML = '<div class="inner">' +
+    (opts.back ? '<button class="tb-back" data-act="back">‹</button>' : '') +
+    '<div class="tb-title">' + esc(opts.title) + '</div>' +
+    '<div class="tb-meta">' + (opts.meta || "") + '</div>' +
+    '</div>';
+}
+
+function render() {
+  renderTabs();
+  if (view === "home") renderHome();
+  else if (view === "lessons") renderLessons();
+  else if (view === "practice") renderPractice();
+  else if (view === "done") renderDone();
+  else if (view === "examsetup") renderExamSetup();
+  else if (view === "exam") renderExam();
+  else if (view === "result") renderResult();
+  else if (view === "wrong" || view === "fav") renderList(view);
+  else if (view === "stats") renderStats();
+  else if (view === "ops") renderOps();
+  else if (view === "search") renderSearch();
+}
+
+/* ---------- 首页 ---------- */
+function renderHome() {
+  setTop(null);
+  var st = stats();
+  var seqPos = Math.min((state.seq || 0) + 1, QUESTIONS.length);
+  var html = "";
+  html += '<div class="hero">' +
+    '<h1>《计算机与人工智能基础》免修考试</h1>' +
+    '<p>题库 ' + QUESTIONS.length + ' 题 · ' + LESSONS.length + ' 个课次分类</p>' +
+    '<div class="pbar"><i style="width:' + st.cover + '%"></i></div>' +
+    '<div class="nums">' +
+      '<div><b>' + st.done + '</b>已做</div>' +
+      '<div><b>' + st.acc + '%</b>正确率</div>' +
+      '<div><b>' + st.wrong + '</b>错题</div>' +
+      '<div><b>' + st.fav + '</b>收藏</div>' +
+    '</div></div>';
+
+  if (!storageOK) html += '<div class="banner">⚠️ 浏览器不允许保存进度（当前可能处于无痕/隐私模式）。做题记录在刷新后会丢失，但不影响使用。</div>';
+
+  html += '<div class="grid">' +
+    '<button class="mode hl" data-act="seq"><b>顺序练习</b><span>接着上次的位置继续 · 上次到第 ' + seqPos + ' 题</span></button>' +
+    '<button class="mode" data-act="random"><b>随机练习</b><span>打乱顺序，检验真实水平</span></button>' +
+    '<button class="mode" data-act="lessons"><b>分类练习</b><span>按课次 / 实验专项突破</span></button>' +
+    '<button class="mode" data-act="wrong"><b>错题本<span class="pill">' + st.wrong + '</span></b><span>做错的题自动收进来，答对自动移出</span></button>' +
+    '<button class="mode" data-act="fav"><b>收藏夹<span class="pill">' + st.fav + '</span></b><span>手动标记的重点题</span></button>' +
+    '<button class="mode" data-act="examsetup"><b>模拟考试</b><span>随机组卷 · 限时计分 · 交卷看解析</span></button>' +
+    '</div>';
+
+  html += '<div class="card">' +
+    '<div class="row"><div><b>背题模式</b><div class="small muted">直接显示正确答案，适合考前快速过一遍</div></div>' +
+      '<button data-act="tog-recite" class="' + (state.set.recite ? "on" : "") + '" style="border:1px solid var(--line);border-radius:99px;padding:5px 14px;font-size:13px;font-weight:700;' +
+      (state.set.recite ? "background:var(--pri);color:#fff;border-color:var(--pri)" : "") + '">' + (state.set.recite ? "已开启" : "已关闭") + '</button></div>' +
+    '<div class="row"><div><b>答对自动下一题</b><div class="small muted">答对后自动跳到下一题</div></div>' +
+      '<button data-act="tog-auto" class="' + (state.set.autoNext ? "on" : "") + '" style="border:1px solid var(--line);border-radius:99px;padding:5px 14px;font-size:13px;font-weight:700;' +
+      (state.set.autoNext ? "background:var(--pri);color:#fff;border-color:var(--pri)" : "") + '">' + (state.set.autoNext ? "已开启" : "已关闭") + '</button></div>' +
+    '</div>';
+
+  html += '<div class="card"><div class="small muted" style="margin-bottom:8px">搜题目关键词（比如「图灵测试」「数据透视表」）</div>' +
+    '<div style="display:flex;gap:8px"><input id="sq" placeholder="输入关键词后回车" style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:11px;font:inherit;background:#fbfcfe">' +
+    '<button data-act="do-search" style="background:var(--pri);color:#fff;border-radius:11px;padding:0 16px;font-weight:700">搜索</button></div></div>';
+
+  html += '<div class="small muted" style="text-align:center;margin:18px 0 6px">' +
+    '快捷键：<span class="kbd">A</span> <span class="kbd">B</span> <span class="kbd">C</span> <span class="kbd">D</span> 选答案 · ' +
+    '<span class="kbd">←</span> <span class="kbd">→</span> 上一题/下一题 · <span class="kbd">F</span> 收藏</div>';
+  app.innerHTML = html;
+}
+
+/* ---------- 分类 ---------- */
+function renderLessons() {
+  setTop({ back: true, title: "分类练习", meta: QUESTIONS.length + " 题" });
+  var html = '<div class="sec-title">按课次 / 实验</div>';
+  for (var i = 0; i < LESSONS.length; i++) {
+    var L = LESSONS[i], s = lessonStat(L.name);
+    var w = pct(s.done, s.cnt);
+    html += '<button class="mode" data-act="lesson" data-name="' + esc(L.name) + '" style="margin-bottom:8px">' +
+      '<b>' + esc(L.name) + '<span class="pill">' + s.cnt + ' 题</span></b>' +
+      '<span>已做 ' + s.done + '/' + s.cnt + '　正确率 ' + (s.done ? s.acc + "%" : "—") + '</span>' +
+      '<div class="pbar" style="margin-top:8px"><i style="width:' + w + '%"></i></div></button>';
+  }
+  app.innerHTML = html;
+}
+
+/* ---------- 题干选项渲染 ---------- */
+function optsHtml(q, picked, showAns) {
+  var out = "";
+  for (var i = 0; i < q.options.length; i++) {
+    var cls = "opt";
+    if (showAns) {
+      if (ltr(i) === q.answer) cls += " ok";
+      else if (i === picked) cls += " bad";
+      else cls += " dim";
+    } else if (picked === i) cls += " picked";
+    out += '<button class="' + cls + '" data-act="pick" data-i="' + i + '">' +
+      '<span class="k">' + ltr(i) + '</span><span class="t">' + esc(q.options[i]) + '</span></button>';
+  }
+  return '<div class="opts">' + out + '</div>';
+}
+
+/* ---------- 练习 ---------- */
+function renderPractice() {
+  if (!S || !S.list.length) { view = "home"; render(); return; }
+  var q = currentQ();
+  var picked = S.revealed[q.no];
+  var answered = picked !== undefined;
+  var showAns = answered || state.set.recite;
+  var ok = answered && ltr(picked) === q.answer;
+
+  setTop({
+    back: true, title: S.title,
+    meta: (S.idx + 1) + " / " + S.list.length
+  });
+
+  var html = '<div class="pbar" style="margin:10px 0 0"><i style="width:' + pct(S.idx + 1, S.list.length) + '%"></i></div>';
+  html += '<div class="qcard">' +
+    '<span class="tag">' + esc(q.lesson || "其他") + '</span><span class="tag gray">第 ' + q.no + ' 题</span>' +
+    '<div class="stem">' + esc(q.stem) + '</div>' +
+    optsHtml(q, picked, showAns) +
+    (showAns ? '<div class="ansline">' +
+      '<span class="good">正确答案：' + q.answer + '</span>' +
+      (answered ? (ok ? '<span class="good">✓ 你答对了</span>' : '<span class="wrong">✗ 你选了 ' + ltr(picked) + '</span>') : '<span class="muted small">背题模式</span>') +
+      '</div>' : '') +
+    '</div>';
+
+  html += '<div class="navbtns">' +
+    '<button data-act="prev"' + (S.idx === 0 ? " disabled" : "") + '>上一题</button>' +
+    '<button class="fav" data-act="fav">' + (state.fav[q.no] ? "★" : "☆") + '</button>' +
+    '<button class="primary" data-act="next">' + (S.idx === S.list.length - 1 ? "完成" : "下一题") + '</button>' +
+    '</div>';
+
+  var doneN = 0, rightN = 0;
+  for (var k in S.revealed) {
+    if (!S.revealed.hasOwnProperty(k)) continue;
+    doneN++;
+    var qq = QMAP[k];
+    if (qq && ltr(S.revealed[k]) === qq.answer) rightN++;
+  }
+  html += '<div class="small muted" style="text-align:center">本组已答 ' + doneN + ' 题 · 正确率 ' + (doneN ? pct(rightN, doneN) + "%" : "—") + '</div>';
+
+  app.innerHTML = html;
+}
+
+function renderDone() {
+  setTop({ back: true, title: "本组完成" });
+  var n = 0, r = 0;
+  for (var k in S.revealed) {
+    if (!S.revealed.hasOwnProperty(k)) continue;
+    n++;
+    var q = QMAP[k];
+    if (q && ltr(S.revealed[k]) === q.answer) r++;
+  }
+  var wrongList = [];
+  for (var kk in S.revealed) {
+    if (!S.revealed.hasOwnProperty(kk)) continue;
+    var qq = QMAP[kk];
+    if (qq && ltr(S.revealed[kk]) !== qq.answer) wrongList.push(+kk);
+  }
+  app.innerHTML = '<div class="card" style="text-align:center;padding:24px 16px">' +
+    '<div style="font-size:40px">' + (n && r / n >= 0.9 ? "🎉" : n && r / n >= 0.7 ? "👍" : "💪") + '</div>' +
+    '<h2 style="margin:8px 0 2px">' + esc(S.title) + ' 完成</h2>' +
+    '<div class="muted small">共 ' + n + ' 题　答对 ' + r + ' 题　正确率 <b style="color:var(--pri);font-size:16px">' + (n ? pct(r, n) : 0) + '%</b>　用时 ' + fmtDur(Date.now() - S.start) + '</div>' +
+    '</div>' +
+    '<div class="navbtns">' +
+    (wrongList.length ? '<button class="primary" data-act="redo-wrong">只重做这 ' + wrongList.length + ' 道错题</button>' : "") +
+    '<button data-act="back">返回首页</button></div>';
+  S._wrongList = wrongList;
+}
+
+/* ---------- 错题本 / 收藏 ---------- */
+function renderList(kind) {
+  var list = keysOf(kind === "wrong" ? state.wrong : state.fav).sort(function (a, b) { return a - b; });
+  var title = kind === "wrong" ? "错题本" : "收藏夹";
+  setTop({ back: true, title: title, meta: list.length + " 题" });
+  if (!list.length) {
+    app.innerHTML = '<div class="empty">' + (kind === "wrong" ? "还没有错题 —— 保持住！" : "还没有收藏的题目") + '</div>';
+    return;
+  }
+  var html = '<div class="navbtns" style="margin-top:12px">' +
+    '<button class="primary" data-act="start-list" data-kind="' + kind + '">开始练习这 ' + list.length + ' 题</button>' +
+    (kind === "wrong" ? '<button data-act="clear-wrong">清空</button>' : '<button data-act="clear-fav">清空</button>') +
+    '</div>';
+  html += '<div class="card" style="padding:10px 14px">';
+  for (var i = 0; i < list.length; i++) {
+    var q = QMAP[list[i]];
+    var a = state.answered[q.no];
+    html += '<div class="row" style="align-items:flex-start">' +
+      '<div style="flex:1"><div class="small" style="font-weight:600">' + list[i] + '. ' + esc(q.stem) + '</div>' +
+      '<div class="small muted">' + esc(q.lesson) + ' · 正确答案 ' + q.answer + (a ? ' · 你上次选 ' + ltr(a.p) : '') + '</div></div>' +
+      '<button data-act="open-one" data-no="' + list[i] + '" data-kind="' + kind + '" style="color:var(--pri);font-weight:700;font-size:13px;white-space:nowrap">查看</button>' +
+      '</div>';
+  }
+  html += '</div>';
+  app.innerHTML = html;
+}
+
+/* ---------- 模拟考试 ---------- */
+function renderExamSetup() {
+  setTop({ back: true, title: "模拟考试" });
+  var wrongN = keysOf(state.wrong).length;
+  app.innerHTML = '<div class="card">' +
+    '<div class="sec-title" style="margin-top:2px">抽题数量</div>' +
+    '<div class="grid" style="grid-template-columns:repeat(3,1fr)">' +
+    '<button class="mode ex-n on" data-n="20"><b>20 题</b><span>快速测一测</span></button>' +
+    '<button class="mode ex-n" data-n="50"><b>50 题</b><span>半场</span></button>' +
+    '<button class="mode ex-n" data-n="100"><b>100 题</b><span>全真</span></button>' +
+    '</div>' +
+    '<div class="sec-title">时间限制</div>' +
+    '<div class="grid" style="grid-template-columns:repeat(4,1fr)">' +
+    '<button class="mode ex-t on" data-t="0"><b>不限时</b></button>' +
+    '<button class="mode ex-t" data-t="10"><b>10 分钟</b></button>' +
+    '<button class="mode ex-t" data-t="20"><b>20 分钟</b></button>' +
+    '<button class="mode ex-t" data-t="30"><b>30 分钟</b></button>' +
+    '</div>' +
+    '<div class="row" style="margin-top:6px"><div><b>只考错题</b><div class="small muted">从错题本的 ' + wrongN + ' 题里抽</div></div>' +
+    '<button data-act="tog-onlywrong" style="border:1px solid var(--line);border-radius:99px;padding:5px 14px;font-size:13px;font-weight:700">已关闭</button></div>' +
+    '<div class="navbtns" style="margin-bottom:0"><button class="primary" data-act="exam-go">开始考试</button></div>' +
+    '<div class="small muted" style="margin-top:8px">及格线按 60 分计。交卷后会自动把错题收进错题本。</div>' +
+    '</div>';
+  S = S || {};
+  S._n = 20; S._t = 0; S._onlyWrong = false;
+}
+function renderExam() {
+  var q = currentQ();
+  var picked = S.picks[q.no];
+  var answeredN = 0;
+  for (var i = 0; i < S.list.length; i++) { if (S.picks[S.list[i]] !== undefined) answeredN++; }
+  var left = S.deadline ? S.deadline - Date.now() : 0;
+  setTop({
+    back: false, title: "模拟考试",
+    meta: '<span id="clock" class="' + (S.deadline && left < 60000 ? "clock danger" : "clock") + '">' +
+      (S.deadline ? "剩余 " + fmtClock(left) : "不限时") + '</span>'
+  });
+  var html = '<div class="pbar" style="margin:10px 0 0"><i style="width:' + pct(answeredN, S.list.length) + '%"></i></div>';
+  html += '<div class="small muted" style="margin-top:6px">已答 ' + answeredN + ' / ' + S.list.length + '　第 ' + (S.idx + 1) + ' 题</div>';
+  html += '<div class="qcard">' +
+    '<span class="tag">第 ' + q.no + ' 题</span><span class="tag gray">' + esc(q.lesson) + '</span>' +
+    '<div class="stem">' + esc(q.stem) + '</div>' +
+    optsHtml(q, picked, false) +
+    '</div>';
+  html += '<div class="navbtns">' +
+    '<button data-act="prev"' + (S.idx === 0 ? " disabled" : "") + '>上一题</button>' +
+    '<button class="fav" data-act="toggle-sheet" title="答题卡">▦</button>' +
+    '<button data-act="next">' + (S.idx === S.list.length - 1 ? "最后一题" : "下一题") + '</button>' +
+    '</div>';
+  html += '<div class="navbtns"><button class="primary" data-act="submit-exam">交卷（已答 ' + answeredN + ' 题）</button></div>';
+  if (S.sheet) {
+    html += '<div class="card"><div class="small" style="font-weight:700;margin-bottom:6px">答题卡</div><div class="sheet">';
+    for (var j = 0; j < S.list.length; j++) {
+      var cls = S.picks[S.list[j]] !== undefined ? "done" : "";
+      if (j === S.idx) cls = "cur";
+      html += '<button class="' + cls + '" data-act="jump" data-i="' + j + '">' + (j + 1) + '</button>';
+    }
+    html += '</div></div>';
+  }
+  app.innerHTML = html;
+}
+function renderResult() {
+  var r = S.result;
+  var pass = r.score >= 60;
+  setTop({ back: true, title: "考试结果" });
+  var html = '<div class="card" style="text-align:center;padding:22px 16px">' +
+    '<div style="font-size:44px;font-weight:800;color:' + (pass ? "var(--ok)" : "var(--bad)") + '">' + r.score + '</div>' +
+    '<div class="muted small">' + (pass ? "及格 ✅" : "不及格 ❌（按 60 分线）") + '　用时 ' + fmtDur(r.used) + (r.auto ? "（超时自动交卷）" : "") + '</div>' +
+    '<div class="kpi" style="margin-top:14px">' +
+      '<div><b>' + r.total + '</b><span>总题数</span></div>' +
+      '<div><b style="color:var(--ok)">' + r.right + '</b><span>答对</span></div>' +
+      '<div><b style="color:var(--bad)">' + (r.total - r.right) + '</b><span>答错</span></div>' +
+      '<div><b>' + r.score + '%</b><span>得分率</span></div>' +
+    '</div></div>';
+  if (r.wrong.length) {
+    html += '<div class="navbtns"><button class="primary" data-act="exam-redo-wrong">重做这 ' + r.wrong.length + ' 道错题</button><button data-act="back">返回首页</button></div>';
+    html += '<div class="sec-title">错题回顾（点击可收藏）</div><div class="card" style="padding:10px 14px">';
+    for (var i = 0; i < r.wrong.length; i++) {
+      var q = QMAP[r.wrong[i]];
+      var p = S.picks[q.no];
+      html += '<div class="row" style="align-items:flex-start">' +
+        '<div style="flex:1"><div class="small" style="font-weight:600">' + q.no + '. ' + esc(q.stem) + '</div>' +
+        '<div class="small"><span class="wrong">你选 ' + (p === undefined ? "未答" : ltr(p)) + '</span>　<span class="good">正确 ' + q.answer + '</span>　<span class="muted">' + esc(q.options["ABCD".indexOf(q.answer)]) + '</span></div>' +
+        '</div>' +
+        '<button data-act="fav-no" data-no="' + q.no + '" style="color:var(--pri);font-weight:700;font-size:13px;white-space:nowrap">' + (state.fav[q.no] ? "★" : "☆") + '</button>' +
+        '</div>';
+    }
+    html += '</div>';
+  } else {
+    html += '<div class="navbtns"><button class="primary" data-act="back">满分！返回首页</button></div>';
+  }
+  app.innerHTML = html;
+}
+
+/* ---------- 统计 ---------- */
+function renderStats() {
+  setTop(null);
+  var st = stats();
+  var html = '<div class="card"><div class="kpi">' +
+    '<div><b>' + st.done + '</b><span>已做</span></div>' +
+    '<div><b>' + st.acc + '%</b><span>正确率</span></div>' +
+    '<div><b>' + st.wrong + '</b><span>错题</span></div>' +
+    '<div><b>' + st.cover + '%</b><span>覆盖率</span></div>' +
+    '</div><div class="pbar" style="margin-top:12px"><i style="width:' + st.cover + '%"></i></div>' +
+    '<div class="small muted" style="margin-top:6px">已做 ' + st.done + ' / ' + st.total + ' 题，做对 ' + st.right + ' 题</div></div>';
+
+  html += '<div class="sec-title">各课次掌握情况（正确率低的优先复习）</div><div class="card">';
+  var rows = LESSONS.map(function (L) { var s = lessonStat(L.name); return { name: L.name, s: s }; });
+  rows.sort(function (a, b) {
+    if (a.s.done === 0 && b.s.done !== 0) return 1;
+    if (b.s.done === 0 && a.s.done !== 0) return -1;
+    return a.s.acc - b.s.acc;
+  });
+  for (var i = 0; i < rows.length; i++) {
+    var s = rows[i].s;
+    var cls = s.done === 0 ? "" : (s.acc < 60 ? "low" : s.acc < 85 ? "mid" : "");
+    html += '<div class="bar"><div class="name">' + esc(rows[i].name) + '</div>' +
+      '<div class="track"><i class="' + cls + '" style="width:' + pct(s.done, s.cnt) + '%"></i></div>' +
+      '<div class="val">' + (s.done ? s.acc + "% · " + s.done + "/" + s.cnt : "未做") + '</div></div>';
+  }
+  html += '</div>';
+
+  html += '<div class="sec-title">模拟考试记录（最近 10 次）</div><div class="card">';
+  if (!state.exam.length) html += '<div class="small muted">还没有考试记录</div>';
+  else {
+    html += '<table class="hist"><tr><th>时间</th><th>题量</th><th>答对</th><th>得分</th></tr>';
+    for (var k = 0; k < Math.min(10, state.exam.length); k++) {
+      var e = state.exam[k];
+      var d = new Date(e.t);
+      html += '<tr><td>' + (d.getMonth() + 1) + "/" + d.getDate() + " " + (d.getHours() < 10 ? "0" : "") + d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes() +
+        '</td><td>' + e.total + '</td><td>' + e.right + '</td><td style="font-weight:700;color:' + (e.score >= 60 ? "var(--ok)" : "var(--bad)") + '">' + e.score + '</td></tr>';
+    }
+    html += '</table>';
+  }
+  html += '</div>';
+
+  html += '<div class="navbtns"><button data-act="export">导出错题（文本）</button><button data-act="reset">清空全部记录</button></div>';
+  html += '<div class="small muted" style="text-align:center;margin-bottom:10px">进度保存在这台设备的浏览器里，换浏览器或清理数据会丢失。</div>';
+  app.innerHTML = html;
+}
+
+/* ---------- 操作题 ---------- */
+function renderOps() {
+  setTop(null);
+  var html = '<div class="card"><b>操作题部分（WPS 文字 / 表格 / 演示 + Windows 基本操作）</b>' +
+    '<div class="small muted" style="margin-top:6px">这些是手工操作题，刷题网页没法自动判分。建议：在电脑上打开素材文件夹，照着「样张」图片一项一项做，做完对照样张检查。<br>' +
+    '素材位置：压缩包 <b>2026免修考试复习题.zip</b> 里的「操作题」文件夹（考试时这些素材相当于 <b>C:\\KS</b> 文件夹）。</div></div>';
+  html += '<div class="card ops">';
+  for (var i = 0; i < OPS.length; i++) {
+    html += '<h3>' + esc(OPS[i].title) + '</h3><ol>';
+    for (var j = 0; j < OPS[i].items.length; j++) {
+      html += '<li>' + esc(OPS[i].items[j]) + '</li>';
+    }
+    html += '</ol>';
+  }
+  html += '</div>';
+  app.innerHTML = html;
+}
+
+/* ---------- 搜索 ---------- */
+function renderSearch() {
+  setTop({ back: true, title: "搜索结果", meta: (S && S.list ? S.list.length : 0) + " 题" });
+  var list = S.list;
+  if (!list.length) { app.innerHTML = '<div class="empty">没有找到相关题目</div>'; return; }
+  var html = '<div class="card" style="padding:10px 14px">';
+  for (var i = 0; i < list.length; i++) {
+    var q = QMAP[list[i]];
+    html += '<div class="row" style="align-items:flex-start">' +
+      '<div style="flex:1"><div class="small" style="font-weight:600">' + q.no + '. ' + esc(q.stem) + '</div>' +
+      '<div class="small muted">' + esc(q.lesson) + ' · 正确答案 ' + q.answer + '</div></div>' +
+      '<button data-act="open-one" data-no="' + q.no + '" style="color:var(--pri);font-weight:700;font-size:13px;white-space:nowrap">查看</button>' +
+      '</div>';
+  }
+  html += '</div>';
+  app.innerHTML = html;
+}
+
+/* ==================== 事件 ==================== */
+document.addEventListener("click", function (ev) {
+  var t = ev.target.closest ? ev.target.closest("[data-act],[data-tab],[data-n],[data-t]") : null;
+  if (!t) return;
+
+  if (t.hasAttribute("data-tab")) {
+    var id = t.getAttribute("data-tab");
+    if (id === "home") { view = "home"; }
+    else { view = id; }
+    window.scrollTo(0, 0); render(); return;
+  }
+  if (t.hasAttribute("data-n") && t.classList.contains("ex-n")) {
+    S = S || {}; S._n = +t.getAttribute("data-n");
+    var ns = app.querySelectorAll(".ex-n");
+    for (var i = 0; i < ns.length; i++) ns[i].classList.remove("on");
+    t.classList.add("on"); return;
+  }
+  if (t.hasAttribute("data-t") && t.classList.contains("ex-t")) {
+    S = S || {}; S._t = +t.getAttribute("data-t");
+    var ts = app.querySelectorAll(".ex-t");
+    for (var j = 0; j < ts.length; j++) ts[j].classList.remove("on");
+    t.classList.add("on"); return;
+  }
+
+  var act = t.getAttribute("data-act");
+  if (!act) return;
+
+  if (act === "back") {
+    stopTimer();
+    if (view === "practice" || view === "done" || view === "exam" || view === "result") { view = "home"; }
+    else if (view === "lessons" || view === "examsetup" || view === "search") { view = "home"; }
+    window.scrollTo(0, 0); render(); return;
+  }
+  if (act === "seq") { resumeSeq(); return; }
+  if (act === "random") { startPractice("random", "随机练习", shuffle(QUESTIONS.map(function (q) { return q.no; }))); return; }
+  if (act === "lessons") { view = "lessons"; window.scrollTo(0, 0); render(); return; }
+  if (act === "lesson") {
+    var name = t.getAttribute("data-name");
+    var list = QUESTIONS.filter(function (q) { return (q.lesson || "其他") === name; }).map(function (q) { return q.no; });
+    startPractice("lesson", name, list); return;
+  }
+  if (act === "examsetup") { S = {}; view = "examsetup"; window.scrollTo(0, 0); render(); return; }
+  if (act === "tog-onlywrong") {
+    S = S || {}; S._onlyWrong = !S._onlyWrong;
+    t.textContent = S._onlyWrong ? "已开启" : "已关闭";
+    if (S._onlyWrong) { t.style.background = "var(--pri)"; t.style.color = "#fff"; t.style.borderColor = "var(--pri)"; }
+    else { t.style.background = ""; t.style.color = ""; t.style.borderColor = "var(--line)"; }
+    return;
+  }
+  if (act === "exam-go") {
+    startExam(S._n || 20, S._t || 0, !!S._onlyWrong); return;
+  }
+  if (act === "tog-recite") { state.set.recite = !state.set.recite; save(); render(); return; }
+  if (act === "tog-auto") { state.set.autoNext = !state.set.autoNext; save(); render(); return; }
+  if (act === "pick") { pick(+t.getAttribute("data-i")); return; }
+  if (act === "prev") { prevQ(); return; }
+  if (act === "next") { nextQ(); return; }
+  if (act === "jump") { jumpTo(+t.getAttribute("data-i")); return; }
+  if (act === "toggle-sheet") { S.sheet = !S.sheet; render(); return; }
+  if (act === "fav") { toggleFav(); return; }
+  if (act === "fav-no") {
+    var no = +t.getAttribute("data-no");
+    if (state.fav[no]) { delete state.fav[no]; toast("已取消收藏"); }
+    else { state.fav[no] = 1; toast("已收藏"); }
+    save(); render(); return;
+  }
+  if (act === "submit-exam") {
+    var left = S.list.length;
+    var un = 0;
+    for (var k = 0; k < left; k++) { if (S.picks[S.list[k]] === undefined) un++; }
+    if (un > 0 && !confirm("还有 " + un + " 题没答，确定交卷吗？")) return;
+    submitExam(false); return;
+  }
+  if (act === "exam-redo-wrong") {
+    var wl = S.result.wrong.slice();
+    startPractice("random", "重做错题", wl); return;
+  }
+  if (act === "start-list") {
+    var kind = t.getAttribute("data-kind");
+    var ls = keysOf(kind === "wrong" ? state.wrong : state.fav).sort(function (a, b) { return a - b; });
+    startPractice(kind, kind === "wrong" ? "错题练习" : "收藏练习", ls); return;
+  }
+  if (act === "open-one") {
+    var on = +t.getAttribute("data-no");
+    var kd = t.getAttribute("data-kind") || "mine";
+    startPractice(kd, "第 " + on + " 题", [on]); return;
+  }
+  if (act === "clear-wrong") { if (confirm("确定清空错题本？")) { state.wrong = {}; save(); render(); } return; }
+  if (act === "clear-fav") { if (confirm("确定清空收藏夹？")) { state.fav = {}; save(); render(); } return; }
+  if (act === "redo-wrong") { startPractice("random", "重做错题", (S._wrongList || []).slice()); return; }
+  if (act === "do-search") {
+    var box = document.getElementById("sq");
+    doSearch(box ? box.value : ""); return;
+  }
+  if (act === "export") {
+    var lines = ["《计算机与人工智能基础》免修考试 · 错题清单", "导出时间：" + new Date().toLocaleString(), ""];
+    var ws = keysOf(state.wrong).sort(function (a, b) { return a - b; });
+    if (!ws.length) lines.push("（暂无错题）");
+    for (var i2 = 0; i2 < ws.length; i2++) {
+      var q2 = QMAP[ws[i2]];
+      var a2 = state.answered[q2.no];
+      lines.push(q2.no + ". [" + q2.lesson + "] " + q2.stem);
+      for (var o = 0; o < q2.options.length; o++) lines.push("   " + ltr(o) + ". " + q2.options[o]);
+      lines.push("   正确答案：" + q2.answer + (a2 ? "（你选了 " + ltr(a2.p) + "）" : ""));
+      lines.push("");
+    }
+    var blob = new Blob([lines.join("\r\n")], { type: "text/plain;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "计算机免修-错题清单.txt";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast("已导出"); return;
+  }
+  if (act === "reset") {
+    if (confirm("确定清空全部做题记录（错题、收藏、进度、考试记录）？此操作不可撤销。")) {
+      resetAll(); toast("已清空"); render();
+    }
+    return;
+  }
+});
+
+function doSearch(kw) {
+  kw = String(kw || "").trim();
+  if (!kw) { toast("请输入关键词"); return; }
+  var kwl = kw.toLowerCase();
+  var list = QUESTIONS.filter(function (q) {
+    if (q.stem.toLowerCase().indexOf(kwl) >= 0) return true;
+    for (var i = 0; i < q.options.length; i++) { if (q.options[i].toLowerCase().indexOf(kwl) >= 0) return true; }
+    return false;
+  }).map(function (q) { return q.no; });
+  S = { list: list, idx: 0 };
+  view = "search";
+  window.scrollTo(0, 0); render();
+  if (!list.length) toast("没有找到相关题目");
+}
+
+document.addEventListener("keydown", function (ev) {
+  if (view !== "practice" && view !== "exam") return;
+  var tag = (ev.target && ev.target.tagName) || "";
+  if (tag === "INPUT" || tag === "TEXTAREA") return;
+  var k = ev.key.toUpperCase();
+  if (k === "A" || k === "B" || k === "C" || k === "D") { pick("ABCD".indexOf(k)); ev.preventDefault(); return; }
+  if (k === "ARROWRIGHT") { nextQ(); ev.preventDefault(); return; }
+  if (k === "ARROWLEFT") { prevQ(); ev.preventDefault(); return; }
+  if (k === "F" && view === "practice") { toggleFav(); ev.preventDefault(); return; }
+  if (k === "ENTER" || k === " ") { nextQ(); ev.preventDefault(); }
+});
+
+document.addEventListener("keydown", function (ev) {
+  if (ev.key === "Enter" && view === "home" && ev.target && ev.target.id === "sq") { doSearch(ev.target.value); }
+});
+
+/* ==================== 启动 ==================== */
+render();
+</script>
+</body>
+</html>
